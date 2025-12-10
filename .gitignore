@@ -1,0 +1,8 @@
+credentials/
+data/
+images/
+models/
+output/
+__pycache__/
+temp/
+.history/
