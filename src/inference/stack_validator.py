@@ -2,7 +2,7 @@ import cv2
 
 class StackValidator:
     def count_stack(self, box_list, pallet_status, pallet, status_bbox):
-        if pallet_status == "empty":
+        if pallet_status is None:
             return 0
         stack_count1 = self.count_stacks_using_boxes(box_list, pallet_status)
         stack_count2 = self.count_stacks_using_pallet_status_bbox(pallet, box_list, status_bbox, pallet_status)
@@ -47,6 +47,8 @@ class StackValidator:
         return max(count11, count12, count21, count22) + 1
 
     def count_stacks_using_pallet_status_bbox(self, pallet, boxes, status_bbox, pallet_status):
+        if not boxes:
+            return 0
         status_bbox_height = status_bbox[3] - status_bbox[1]
         status_bbox_height -= (pallet[3] - pallet[1]) if pallet is not None else 0
         avg_box_height_sum = 0
