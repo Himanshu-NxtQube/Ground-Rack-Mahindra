@@ -63,7 +63,7 @@ class BoxCounter():
                 last_y = center_y
                 box_stacks.append([int(center_y)])
                 continue
-            if abs(last_y - center_y) < 75:
+            if abs(last_y - center_y) < 45:
                 box_stacks[-1].append(int(center_y))
             else:
                 box_stacks.append([int(center_y)])
