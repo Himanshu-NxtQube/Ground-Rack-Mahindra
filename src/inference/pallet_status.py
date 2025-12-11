@@ -11,7 +11,7 @@ class PalletStatus:
         image_name = os.path.basename(image_path)
         image = cv2.imread(image_path)
         img_dims = image.shape
-        center_w, center_h = img_dims[0]//2, img_dims[1]//2
+        center_h, center_w = img_dims[0]//2, img_dims[1]//2
 
         # Apply plasma colormap
         colored_depth = cv2.applyColorMap(depth_map, cv2.COLORMAP_PLASMA)
