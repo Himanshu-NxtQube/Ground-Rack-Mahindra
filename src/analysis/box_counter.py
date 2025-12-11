@@ -68,5 +68,5 @@ class BoxCounter():
             else:
                 box_stacks.append([int(center_y)])
         
-        print(box_stacks)
+        [print(stack) for stack in box_stacks]
         return sum([len(stack) for stack in box_stacks])/len(box_stacks)
