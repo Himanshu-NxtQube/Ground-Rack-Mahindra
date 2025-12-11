@@ -72,4 +72,4 @@ class BoxCounter():
         [print(stack) for stack in box_stacks]
         avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
         print(avg_stack)
-        return avg_stack
+        return round(avg_stack)
