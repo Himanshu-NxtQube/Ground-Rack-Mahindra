@@ -6,9 +6,9 @@ class BoxCounter():
         self.pallet_width_inches = 40
         self.back_layers = pd.read_csv("data/part_numbers.csv", index_col="part number")
 
-    def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type):
+    def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type, gap_in_inches):
         if stacking_type == "interlock":
-            pallet_area = self.pallet_len_inches * self.pallet_width_inches
+            pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
             box_area = avg_box_length * avg_box_width
             
             boxes_per_layer = pallet_area // box_area

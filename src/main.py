@@ -9,6 +9,7 @@ from utils.visualizer import Visualizer
 from inference.depth_estimation import DepthEstimator
 from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
+from inference.gap_detector import find_gap
 from inference.boundary_detection import BoundaryDetector
 
 box_detector = BoxDetector()
@@ -51,9 +52,15 @@ def process_single_image(image_path, debug=False):
         visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions)
         visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions)
     
+    left_gap = find_gap(left_pallet, left_boxes)
+    right_gap = find_gap(right_pallet, right_boxes)
+
+    left_gap_in_inches = converter.convert_gap_in_inches(left_gap)
+    right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
+
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'])
-    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'])
+    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
+    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
 
     left_stack_count = stack_validator.count_stack(left_boxes, left_boxes_per_stack, left_pallet_status, left_pallet, left_status_bbox)
     right_stack_count = stack_validator.count_stack(right_boxes, right_boxes_per_stack, right_pallet_status, right_pallet, right_status_bbox)

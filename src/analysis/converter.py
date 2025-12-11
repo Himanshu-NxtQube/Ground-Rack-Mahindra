@@ -7,15 +7,18 @@ class Converter():
             return []
         
         pallet_pixel_width = pallet[2] - pallet[0]
-        conversion_const = self.pallet_width_inches / pallet_pixel_width
+        self.conversion_const = self.pallet_width_inches / pallet_pixel_width
 
         box_dimensions = []
         for box in boxes:
             box_pixel_length = box[2] - box[0]
             box_pixel_height = box[3] - box[1]
-            box_length = box_pixel_length * conversion_const
-            box_height = box_pixel_height * conversion_const
+            box_length = box_pixel_length * self.conversion_const
+            box_height = box_pixel_height * self.conversion_const
 
             box_dimensions.append((box_length, box_height))
         
         return box_dimensions
+    
+    def convert_gap_in_inches(self, gap):
+        return gap * self.conversion_const
