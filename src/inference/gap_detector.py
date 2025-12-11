@@ -1,4 +1,6 @@
 def find_gap(pallet, boxes):
+    if not pallet:
+        return None
     pallet_width = pallet[2] - pallet[0]
 
     bottom_len_of_boxes = 0
