@@ -1,4 +1,5 @@
 import cv2
+import os
 from ultralytics import YOLO
 
 
@@ -6,7 +7,10 @@ class PalletStatus:
     def __init__(self):
         self.pallet_status_estimator = YOLO("./models/new pallet status model.pt")
 
-    def get_status(self, img_dims, depth_map):
+    def get_status(self, image_path, depth_map):
+        image_name = os.path.basename(image_path)
+        image = cv2.imread(image_path)
+        img_dims = image.shape
         center_w, center_h = img_dims[0]//2, img_dims[1]//2
 
         # Apply plasma colormap
@@ -34,7 +38,7 @@ class PalletStatus:
                 left_boxes.append([cx, class_name, (x1, y1, x2, y2)])
             else:
                 right_boxes.append([cx, class_name, (x1, y1, x2, y2)])
-        cv2.imwrite("output/visualized/pallet_status.png", colored_depth)
+        cv2.imwrite(f"output/visualized/{image_name}_depth.png", colored_depth)
 
         left_box_result = None
         right_box_result = None

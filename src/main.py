@@ -36,7 +36,7 @@ def process_single_image(image_path, debug=False):
     right_structure = stack_analyzer.analyze(right_box_dimensions)
 
     depth_map = depth_estimator.get_depth_map(image_path)
-    pallet_status_result = pallet_status_estimator.get_status(cv2.imread(image_path).shape, depth_map)
+    pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 
     left_pallet_status = pallet_status_result['left_status']
     right_pallet_status = pallet_status_result['right_status']
