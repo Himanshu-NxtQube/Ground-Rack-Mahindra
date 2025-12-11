@@ -63,10 +63,13 @@ class BoxCounter():
                 last_y = center_y
                 box_stacks.append([int(center_y)])
                 continue
-            if abs(last_y - center_y) < 45:
+            if abs(last_y - center_y) < 75:
                 box_stacks[-1].append(int(center_y))
             else:
                 box_stacks.append([int(center_y)])
+            last_y = center_y
         
         [print(stack) for stack in box_stacks]
-        return sum([len(stack) for stack in box_stacks])/len(box_stacks)
+        avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
+        print(avg_stack)
+        return avg_stack
