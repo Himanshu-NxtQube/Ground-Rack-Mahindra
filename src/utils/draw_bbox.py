@@ -206,10 +206,10 @@ if __name__ == "__main__":
     save_output_path = "output/visualized/"
     os.makedirs(save_output_path, exist_ok=True)
     # model_path = "./models/new_blue_orange_bar.pt"
-    model_path = "./models/Mahindra_orange_blue.pt"
+    model_path = "models/mahidra_ground_pallet.pt"
     model = YOLO(model_path)
     image_dir = "images/"
-    test_images = ['DJI_0012.JPG']
+    test_images = ['DJI_0018.JPG']
     for image in os.listdir(image_dir):
         if image in test_images:
             image_path = os.path.join(image_dir, image)
