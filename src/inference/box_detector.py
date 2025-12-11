@@ -5,7 +5,7 @@ class BoxDetector:
     def __init__(self):
         self.model = YOLO("models/mahindra_box_model.pt", verbose=False)
 
-    def detect(self, image_path, boundaries ):
+    def detect(self, image_path, boundaries):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
         image = cv2.imread(image_path)
         h, w, _ = image.shape
@@ -16,7 +16,7 @@ class BoxDetector:
         right_boxes = []
 
         for conf, box in zip(boxes.conf, boxes.xyxy):
-            if conf < 0.75:
+            if conf < 0.8:
                 continue
             
             cx = (box[0] + box[2])/2

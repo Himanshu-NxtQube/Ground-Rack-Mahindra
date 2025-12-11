@@ -6,7 +6,7 @@ class BoundaryDetector:
     def __init__(self):
         """Initializes the unified model and thresholds from the configuration."""
         self.model = YOLO("models/Mahindra_orange_blue.pt")
-        self.boundary_threshold = 0.2
+        self.boundary_threshold = 0.1
         self.merge_threshold = 50
 
     def get_boundaries(self, image_path):

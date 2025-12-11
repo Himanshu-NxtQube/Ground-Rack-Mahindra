@@ -9,7 +9,8 @@ class StackValidator:
 
         print("Stack count1:", stack_count1)
         print("Stack count2:", stack_count2)
-        return max(stack_count1, stack_count2)
+        # return max(stack_count1, stack_count2)
+        return stack_count1
         
     def count_stacks_using_boxes(self, box_list, pallet_status):
         if not box_list:
