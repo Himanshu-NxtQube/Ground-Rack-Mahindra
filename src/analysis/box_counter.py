@@ -26,7 +26,7 @@ class BoxCounter():
             #     return None
             [print(stack) for stack in box_stacks]
             avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
-            print(avg_stack)
+            avg_stack = round(avg_stack)
             
             try:
                 return avg_stack * int(self.back_layers.loc[part_number, 'layer'])
