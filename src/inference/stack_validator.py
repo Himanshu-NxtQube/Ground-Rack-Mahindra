@@ -1,10 +1,10 @@
 import cv2
 
 class StackValidator:
-    def count_stack(self, box_list, pallet_status, pallet, status_bbox):
+    def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox):
         if pallet_status is None:
             return 0
-        stack_count1 = self.count_stacks_using_boxes(box_list, pallet_status)
+        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status)
         stack_count2 = self.count_stacks_using_pallet_status_bbox(pallet, box_list, status_bbox, pallet_status)
 
         print("Stack count1:", stack_count1)
@@ -12,7 +12,7 @@ class StackValidator:
         # return max(stack_count1, stack_count2)
         return stack_count1
         
-    def count_stacks_using_boxes(self, box_list, pallet_status):
+    def count_stacks_using_boxes(self, box_list, box_stacks, pallet_status):
         if not box_list:
             return 0
         
@@ -36,7 +36,19 @@ class StackValidator:
         count22 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
 
 
-
+        top_stack_len = len(box_stacks[0])
+        print("Top stack Len:", top_stack_len)
+        if len(box_stacks) >= 1:
+            stack_sum = 0
+            for stack in box_stacks[1:]:
+                stack_sum += len(stack)
+            avg_boxes_per_stack = round(stack_sum/(len(box_stacks) - 1))
+            print("Avg boxes Per stack:", avg_boxes_per_stack)
+        else:
+            avg_boxes_per_stack = None
+        if avg_boxes_per_stack and top_stack_len == avg_boxes_per_stack:
+            return max(count11, count12, count21, count22) + 1
+        
         # for b in box_list:
         #     print(b['x1'], b['x2'])
         # print(f"count11: ",count11)

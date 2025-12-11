@@ -6,7 +6,7 @@ class BoxCounter():
         self.pallet_width_inches = 40
         self.back_layers = pd.read_csv("data/part_numbers.csv", index_col="part number")
 
-    def count_boxes_per_layer(self, avg_boxes_per_stack, part_number, avg_box_length, avg_box_width, stacking_type):
+    def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type):
         if stacking_type == "interlock":
             pallet_area = self.pallet_len_inches * self.pallet_width_inches
             box_area = avg_box_length * avg_box_width
@@ -24,8 +24,12 @@ class BoxCounter():
             #     return len(bottom_boxes) * int(self.back_layers.loc[part_number, 'layer'])
             # except:
             #     return None
+            [print(stack) for stack in box_stacks]
+            avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
+            print(avg_stack)
+            
             try:
-                return avg_boxes_per_stack * int(self.back_layers.loc[part_number, 'layer'])
+                return avg_stack * int(self.back_layers.loc[part_number, 'layer'])
             except:
                 print(f"{part_number} is not found in part_number.csv")
                 return None
@@ -50,7 +54,7 @@ class BoxCounter():
             return i + boxes_per_layer//2
         return 0
     
-    def get_avg_boxes_per_stack(self, boxes):
+    def get_boxes_per_stack(self, boxes):
         if not boxes:
             return 0
         boxes_per_stack_sum = 0
@@ -69,7 +73,9 @@ class BoxCounter():
                 box_stacks.append([int(center_y)])
             last_y = center_y
         
-        [print(stack) for stack in box_stacks]
-        avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
-        print(avg_stack)
-        return round(avg_stack)
+        # [print(stack) for stack in box_stacks]
+        # avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
+        # print(avg_stack)
+        # return round(avg_stack)
+
+        return box_stacks
