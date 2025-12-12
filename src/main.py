@@ -27,8 +27,8 @@ images_dir = "images/"
 def process_single_image(image_path, debug=False):
     boundaries = boundary_detector.get_boundaries(image_path)
     
-    left_boxes, right_boxes = box_detector.detect(image_path, boundaries)
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
+    left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
 
     left_box_dimensions = converter.get_box_dimensions(left_boxes, left_pallet)
     right_box_dimensions = converter.get_box_dimensions(right_boxes, right_pallet)
