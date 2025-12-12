@@ -49,8 +49,8 @@ def process_single_image(image_path, debug=False):
     right_status_bbox = pallet_status_result['right_bbox']
 
     if debug:
-        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions)
-        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions)
+        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions, left_pallet)
+        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions, right_pallet)
     
     left_gap = find_gap(left_pallet, left_boxes)
     right_gap = find_gap(right_pallet, right_boxes)
