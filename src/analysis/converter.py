@@ -21,4 +21,4 @@ class Converter():
         return box_dimensions
     
     def convert_gap_in_inches(self, gap):
-        return gap * self.conversion_const
+        return round(float(gap * self.conversion_const), 2)
