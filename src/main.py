@@ -75,15 +75,15 @@ def process_single_image(image_path, report_id, debug=False):
     right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
-    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_boxes_per_stack, f"{os.path.basename(image_path).split('.')[0]}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
+    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_boxes_per_stack, "", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
+    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_boxes_per_stack, "", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
 
     left_stack_count = stack_validator.count_stack(left_boxes, left_boxes_per_stack, left_pallet_status, left_pallet, left_status_bbox)
     right_stack_count = stack_validator.count_stack(right_boxes, right_boxes_per_stack, right_pallet_status, right_pallet, right_status_bbox)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{os.path.basename(image_path).split('.')[0]}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer)
-    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{os.path.basename(image_path).split('.')[0]}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer)
+    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], "", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer)
+    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], "", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer)
 
     if left_box_count_per_layer is not None and left_stack_count is not None:
         total_left_boxes = (left_box_count_per_layer * left_stack_count) + extra_left_box_count
