@@ -38,7 +38,7 @@ def process_single_image(image_path, report_id, debug=False):
     image_name = os.path.basename(image_path)
     boundaries = boundary_detector.get_boundaries(image_path)
     annotations = ocr_client.get_annotations(image_path)
-    rack_dict = rack_box_extractor.extract_rack_info(annotations, boundaries)
+    rack_dict = rack_box_extractor.extract_rack_info(annotations, boundaries, cv2.imread(image_path).shape)
     rack_dict = infer_Q3_Q4(rack_dict)
 
     depth_map = depth_estimator.get_depth_map(image_path)

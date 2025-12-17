@@ -11,7 +11,9 @@ class RackBoxExtractor:
     
     
     
-    def extract_rack_info(self, annotations, boundaries):
+    def extract_rack_info(self, annotations, boundaries, image_dims):
+        self.center_x = image_dims[0]/2
+        self.center_y = image_dims[1]/2
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
 
         # all_rack_ids = []
