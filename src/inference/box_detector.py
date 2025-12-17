@@ -29,6 +29,12 @@ class BoxDetector:
         filter_left_boxes = []
         filter_right_boxes = []
 
+        back_left_boxes = []
+        back_right_boxes = []
+
+        fartest_left_boxes = []
+        fartest_right_boxes = []
+
         for box in left_boxes:
             b_cx = int((box[0] + box[2])/2)
             b_cy = int((box[1] + box[3])/2)
@@ -36,9 +42,12 @@ class BoxDetector:
             box_depth = depth_map[b_cy][b_cx]
             diff = np.abs(np.float64(left_pallet_depth) - np.float64(box_depth))
 
-            if diff >= 30:
-                continue
-            filter_left_boxes.append(box)
+            if diff >= 30 and diff <= 60:
+                back_left_boxes.append(box)
+            elif diff > 60:
+                fartest_left_boxes.append(box)
+            else:
+                filter_left_boxes.append(box)
 
         for box in right_boxes:
             b_cx = int((box[0] + box[2])/2)
@@ -47,11 +56,14 @@ class BoxDetector:
             box_depth = depth_map[b_cy][b_cx]
             diff = np.abs(np.float64(right_pallet_depth) - np.float64(box_depth))
 
-            if diff >= 30:
-                continue
-            filter_right_boxes.append(box)
+            if diff >= 30 and diff <= 60:
+                back_right_boxes.append(box)
+            elif diff > 60:
+                fartest_right_boxes.append(box)
+            else:
+                filter_right_boxes.append(box)
 
-        return filter_left_boxes, filter_right_boxes
+        return filter_left_boxes, filter_right_boxes, back_left_boxes, back_right_boxes, fartest_left_boxes, fartest_right_boxes
 
     def detect(self, image_path, boundaries, left_pallet, right_pallet):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries

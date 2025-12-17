@@ -30,7 +30,7 @@ def process_single_image(image_path, debug=False):
     
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
     left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
-    left_boxes, right_boxes = box_detector.filter_front_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
+    left_boxes, right_boxes, back_left_boxes, back_right_boxes, fartest_left_boxes, fartest_right_boxes = box_detector.filter_front_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
 
     left_box_dimensions = converter.get_box_dimensions(left_boxes, left_pallet)
     right_box_dimensions = converter.get_box_dimensions(right_boxes, right_pallet)
@@ -66,8 +66,9 @@ def process_single_image(image_path, debug=False):
     left_stack_count = stack_validator.count_stack(left_boxes, left_boxes_per_stack, left_pallet_status, left_pallet, left_status_bbox)
     right_stack_count = stack_validator.count_stack(right_boxes, right_boxes_per_stack, right_pallet_status, right_pallet, right_status_bbox)
 
-    extra_left_box_count = box_counter.count_extra_boxes(left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer)
-    extra_right_box_count = box_counter.count_extra_boxes(right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer)
+    # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
+    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], f"{os.path.basename(image_path).split('.')[0]}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer)
+    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], f"{os.path.basename(image_path).split('.')[0]}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer)
 
     if left_box_count_per_layer is not None and left_stack_count is not None:
         total_left_boxes = (left_box_count_per_layer * left_stack_count) + extra_left_box_count

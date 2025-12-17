@@ -34,27 +34,38 @@ class BoxCounter():
                 print(f"{part_number} is not found in part_number.csv")
                 return None
     
-    def count_extra_boxes(self, box_list, stack_count, pallet_status, boxes_per_layer):
-        if pallet_status == "partial":
-            if not boxes_per_layer:
-                return 0
-            top_sorted = sorted(box_list, key=lambda b: (b[1]+b[3])/2)
+    def count_extra_boxes(self, stacking_type, part_number, box_list, back_box_list, fartest_box_list, stack_count, pallet_status, boxes_per_layer):
+        if stacking_type == "normal":
+            try:
+                layers = int(self.back_layers.loc[part_number, 'layer'])
+            except:
+                print(f"{part_number} is not found in part_number.csv")
+                layers = 0
+            if pallet_status == "partial":
+                
+                if not boxes_per_layer:
+                    return 0
+                top_sorted = sorted(box_list, key=lambda b: (b[1]+b[3])/2)
 
-            i = -1
-            current_count = stack_count
-            while stack_count == current_count:
-                i+=1
-                second_top_box = top_sorted[i] if i < len(top_sorted) else None
-                if second_top_box == None:
-                    break
-                rx = second_top_box[2] - 150
-                lx = second_top_box[0] + 150
-                cy = (second_top_box[1]+second_top_box[3])/2
+                i = -1
+                current_count = stack_count
+                while stack_count == current_count:
+                    i+=1
+                    second_top_box = top_sorted[i] if i < len(top_sorted) else None
+                    if second_top_box == None:
+                        break
+                    rx = second_top_box[2] - 150
+                    lx = second_top_box[0] + 150
+                    cy = (second_top_box[1]+second_top_box[3])/2
 
-                count11 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
-                count12 = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
-                current_count = max(count11, count12)
-            return i + boxes_per_layer//2
+                    count11 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
+                    count12 = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
+                    current_count = max(count11, count12)
+                # return i + boxes_per_layer//2
+                front_boxes = i*layers
+                back_boxes = max(len(back_box_list)*(layers - 1), 0)
+                fartest_boxes = max(len(fartest_box_list), 0)
+                return front_boxes + back_boxes + fartest_boxes
         return 0
     
     def get_boxes_per_stack(self, boxes):
