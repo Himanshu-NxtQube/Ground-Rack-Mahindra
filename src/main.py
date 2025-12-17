@@ -119,8 +119,8 @@ def process_single_image(image_path, report_id, debug=False):
     # s3_key, s3_url = upload_images(image_path)
     key_id = rds_operator.store_img_info(image_path)
     #                       image_name, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""
-    rds_operator.insert_record(image_name, record_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
-    rds_operator.insert_record(image_name, record_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
+    rds_insert_data.insert_record(image_name, record_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
+    rds_insert_data.insert_record(image_name, record_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
 
 report_id = rds_operator.create_report(14)
