@@ -4,7 +4,7 @@ import cv2
 
 class BoxDetector:
     def __init__(self):
-        self.model = YOLO("models/Mahindra_gbox_15_12_25.pt", verbose=False)
+        self.model = YOLO("models/Mahindra_g_box_17_back.pt", verbose=False)
 
     def filter_front_boxes(self, left_boxes, right_boxes, left_pallet, right_pallet, depth_map):
         if left_pallet is not None:
