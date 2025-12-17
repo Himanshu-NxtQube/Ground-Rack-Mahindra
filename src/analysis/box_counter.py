@@ -119,6 +119,13 @@ class BoxCounter():
                         fartest_horizontal_boxes.append(box)
                     else:
                         fartest_vertical_boxes.append(box)
+                
+                print("front horizontal boxes", len(front_horizontal_boxes))
+                print("front vertical boxes", len(front_vertical_boxes))
+                print("back horizontal boxes", len(back_horizontal_boxes))
+                print("back vertical boxes", len(back_vertical_boxes))
+                print("fartest horizontal boxes", len(fartest_horizontal_boxes))
+                print("fartest vertical boxes", len(fartest_vertical_boxes))
 
                 total_extra_boxes += len(front_horizontal_boxes) * self.interlock_strcture["horizontal"]
                 total_extra_boxes += len(front_vertical_boxes) * self.interlock_strcture["vertical"]
