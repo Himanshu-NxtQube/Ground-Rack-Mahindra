@@ -7,95 +7,9 @@ class RackBoxExtractor:
         
         self.area_threshold = 4000
 
-    def extract_ocr_info(self, annotations, boundaries, dims):
-        # dims[0] -> width
-        # dims[1] -> height
-
-        self.center_x = dims[0]/2
-        self.center_y = dims[1]/2
-        self.min_x_threashold = dims[0] * 0.05
-        self.max_x_threashold = dims[0] * 0.95
-        self.max_y_limit = dims[1] - dims[1]*0.05
-        rack_dict = self.extract_rack_info(annotations, boundaries)
-        box_dict = self.extract_box_info(annotations, boundaries)
-
-        return rack_dict, box_dict
     
-    def extract_box_info(self, annotations, boundaries):
-        left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
-
-        # this is a fallback mechanism which prevents getting extra unique ids not in ROI if bar detection fails
-        # this overall_min_y and overall_max_y are getting defined in extract_rack_info function, it calculates lowest and highest y coordinate of annotations, which we will help us to set ROI
-        self.min_y = self.overall_min_y if self.overall_min_y is not None else upper_line_y
-        self.max_y = self.overall_max_y if self.overall_max_y is not None else lower_line_y
-
-        # print("Min_y:",min_y)
-        # print("Max_y:",max_y)
-
-        uids = {}
-        i = 0
-
-        while i < len(annotations):
-            current = annotations[i].description.strip()
-            bbox = [(v.x, v.y) for v in annotations[i].bounding_poly.vertices]
-            x1, y1, x2, y2 = int(bbox[0][0]), int(bbox[0][1]), int(bbox[2][0]), int(bbox[2][1])
-            center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
-
-            x_coords = [x for x, _ in bbox]
-            y_coords = [y for _, y in bbox]
-            x_min, x_max = min(x_coords), max(x_coords)
-            y_min, y_max = min(y_coords), max(y_coords)
-
-            width = x_max - x_min
-            height = y_max - y_min
-            area = width * height
-
-            
-            # print(current, center_x, center_y)
-            
-            # Check if in ROI
-            if max(left_line_x, self.min_x_threashold) <= center_x <= min(right_line_x, self.max_x_threashold) and max(upper_line_y, self.min_y) <= center_y <= min(self.max_y, lower_line_y, self.max_y_limit):
-                # print("Annotation:",current)
-                if current == "@" and i + 1 < len(annotations):
-                    next_text = annotations[i + 1].description.strip()[:6]
-                    bbox = [(v.x, v.y) for v in annotations[i+ 1].bounding_poly.vertices]
-                    x1, y1, x2, y2 = int(bbox[0][0]), int(bbox[0][1]), int(bbox[2][0]), int(bbox[2][1])
-                    center_x, center_y = (x1 + x2) // 2, (y1 + y2) // 2
-
-                    x_coords = [x for x, _ in bbox]
-                    y_coords = [y for _, y in bbox]
-                    x_min, x_max = min(x_coords), max(x_coords)
-                    y_min, y_max = min(y_coords), max(y_coords)
-
-                    width = x_max - x_min
-                    height = y_max - y_min
-                    area += width * height
-                    combined = "@" + next_text
-                    # print('->', combined, area)
-                    if regex.match(self.CONFIG['unique_id']['pattern'], combined) and area > self.CONFIG['unique_id']['area']:
-                        # uids.append((combined.upper(), (center_x, center_y)))
-                        if combined[0] != '@':
-                            combined = '@' + combined[1:]
-                        uids[combined.upper()] = (center_x, center_y)
-                        i += 2  # skip next, already processed
-                        continue
-                
-                # Also handle cases where OCR didn’t split it
-                # combined = current.replace(" ", "").replace("\n", "").strip()[:7]
-                combined = current.replace(" ", "").replace("\n", "").strip()
-                # print(combined, area)
-                if regex.match(self.CONFIG['unique_id']['pattern'], combined) and area > self.CONFIG['unique_id']['area']:
-                    # uids.append((combined.upper(), (center_x, center_y)))
-                    print(combined)
-                    if combined[0] != '@':
-                        combined = '@' + combined[1:]
-                    uids[combined.upper()] = (center_x, center_y)
-            # else:
-                # print("Annotation (outside):", current)
-            i += 1
-
-        print(uids)
-        return uids
+    
+    
     
     def extract_rack_info(self, annotations, boundaries):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
@@ -106,7 +20,7 @@ class RackBoxExtractor:
         Q1_rack_ids, Q2_rack_ids, Q3_rack_ids, Q4_rack_ids = [],[],[],[]
         rack_dict = {}
 
-        pattern = regex.compile(self.CONFIG['rack_id']['pattern'])
+        pattern = regex.compile("^HD-(0[1-9]|1[0-9]|2[0-6])/([A-Z])/(0[1-9]|1[0-9]|2[0-9]|3[0-8])$")
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         # TODO: Remove tuples or list and use Dict(s) 
@@ -169,7 +83,7 @@ class RackBoxExtractor:
 
 
         i = 0
-        exp_len = self.CONFIG['rack_id']['expected_length']
+        exp_len = 10
         res = []
         n = len(annotations)
         while i < n:
