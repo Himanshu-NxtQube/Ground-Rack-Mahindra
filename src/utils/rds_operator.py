@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import pymysql
 from dotenv import load_dotenv
+from utils.s3_operator import upload_images
 load_dotenv()
 
 class RDSOperator:
