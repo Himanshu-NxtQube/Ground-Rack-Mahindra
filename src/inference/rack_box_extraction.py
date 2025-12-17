@@ -1,12 +1,11 @@
 import regex
-from package.config_loader import get_config
 import matplotlib.pyplot as plt
 import cv2
 
 class RackBoxExtractor:
     def __init__(self):
-        self.CONFIG = get_config()
-        self.area_threshold = self.CONFIG['thresholds']['ocr_threshold']['area_threshold']
+        
+        self.area_threshold = 4000
 
     def extract_ocr_info(self, annotations, boundaries, dims):
         # dims[0] -> width
