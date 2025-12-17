@@ -34,7 +34,7 @@ rack_box_extractor = RackBoxExtractor()
 boundary_detector = BoundaryDetector()
 images_dir = "image/"
 
-def process_single_image(image_path, record_id, debug=False):
+def process_single_image(image_path, report_id, debug=False):
     image_name = os.path.basename(image_path)
     boundaries = boundary_detector.get_boundaries(image_path)
     annotations = ocr_client.get_annotations(image_path)
