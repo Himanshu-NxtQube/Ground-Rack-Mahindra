@@ -1,10 +1,20 @@
 from datetime import datetime
 import os
-from src.utils.s3_operator import upload_images
+import pymysql
+from dotenv import load_dotenv
+load_dotenv()
 
 class RDSOperator:
-    def create_report(self, conn, user_id, operator_name='test', report_name = datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
-        with conn.cursor() as cursor:
+    def __init__(self):
+        self.conn = pymysql.connect(
+            host=os.getenv("rds_host"),  # RDS Endpoint
+            user=os.getenv("rds_user"),                    # DB username
+            password=os.getenv("rds_password"),                # DB password
+            database=os.getenv("rds_dbname"),           # Target DB name
+            port=int(os.getenv("rds_port", 3306))                                # Default MySQL port
+        )
+    def create_report(self, user_id, operator_name='test', report_name = datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
+        with self.conn.cursor() as cursor:
             # Generate timestamp-based report name
             # report_name = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             date_image_captured = datetime.now().date()
@@ -16,23 +26,23 @@ class RDSOperator:
             """
             values = (user_id, report_name, operator_name, date_image_captured)
             cursor.execute(insert_query, values)
-            conn.commit()
+            self.conn.commit()
 
             # Fetch the full inserted row
             report_id = cursor.lastrowid
 
             return report_id
         
-    def store_img_info(self, image_path, conn):
+    def store_img_info(self, image_path):
         s3_key, s3_url = upload_images(image_path)
         image_name = os.path.basename(image_path)
 
-        with conn.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             try:
                 insert_query = "INSERT INTO `image-obj-keys` (originalName, s3Key, s3Url) VALUES (%s, %s, %s)"
                 values = (image_name, s3_key, s3_url)  # match the number of columns
                 cursor.execute(insert_query, values)
-                conn.commit()
+                self.conn.commit()
                 image_obj_key_id = cursor.lastrowid
                 # print(f"{image_obj_key_id = }")
                 # print(f"{s3_key = }")
@@ -43,102 +53,102 @@ class RDSOperator:
                 print("Insert unsuccessful to image-obj-keys.")
         
         
-    def store_data_to_RDS(self, image_path, conn, user_id, image_obj_key_id, report_id, img_dims, rack_dict, records, mapping_info, exclusions, pallet_status=None, box_counts=None, stack_counts=None):
-        final_output = build_json_result(image_path, img_dims, rack_dict, records, mapping_info, exclusions, user_id, pallet_status, box_counts, stack_counts)
+    # def store_data_to_RDS(self, image_path, conn, user_id, image_obj_key_id, report_id, img_dims, rack_dict, records, mapping_info, exclusions, pallet_status=None, box_counts=None, stack_counts=None):
+    #     final_output = build_json_result(image_path, img_dims, rack_dict, records, mapping_info, exclusions, user_id, pallet_status, box_counts, stack_counts)
 
         
 
-        for row in final_output:
-            try:
-                with conn.cursor() as cursor:
-                    # --- Check for existing record ---
-                    if row['UNIQUE_ID'] == None or row['UNIQUE_ID'] == "":
-                        check_query = """
-                        SELECT id FROM inferances
-                        WHERE uniqueId = %s AND userId = %s AND barcode_number = %s
-                        """
-                        check_values = (row['UNIQUE_ID'], user_id, row['BARCODE_ID'])  # userId is hardcoded to 3
+    #     for row in final_output:
+    #         try:
+    #             with conn.cursor() as cursor:
+    #                 # --- Check for existing record ---
+    #                 if row['UNIQUE_ID'] == None or row['UNIQUE_ID'] == "":
+    #                     check_query = """
+    #                     SELECT id FROM inferances
+    #                     WHERE uniqueId = %s AND userId = %s AND barcode_number = %s
+    #                     """
+    #                     check_values = (row['UNIQUE_ID'], user_id, row['BARCODE_ID'])  # userId is hardcoded to 3
 
-                        cursor.execute(check_query, check_values)
-                        existing = cursor.fetchone()
-                    else:
-                        existing = False
+    #                     cursor.execute(check_query, check_values)
+    #                     existing = cursor.fetchone()
+    #                 else:
+    #                     existing = False
 
-                    # is_non_conformity = True if row['EXCLUSION'][:5] == "There" else False
-                    is_non_conformity = row['EXCLUSION'] not in ("empty rack", "", "Predicted")
-                    status = None if 'STATUS' not in row.keys() else 'filled' if row['STATUS'] == 'full' else row['STATUS']
+    #                 # is_non_conformity = True if row['EXCLUSION'][:5] == "There" else False
+    #                 is_non_conformity = row['EXCLUSION'] not in ("empty rack", "", "Predicted")
+    #                 status = None if 'STATUS' not in row.keys() else 'filled' if row['STATUS'] == 'full' else row['STATUS']
 
-                    if existing:
-                        # --- Update existing record ---
-                        update_query = """
-                        UPDATE inferances
-                        SET
-                            image_name = %s, rack_id = %s, box_number = %s, invoice_number = %s,
-                            box_quantity = %s, part_number = %s, exclusion = %s, status = %s,
-                            is_non_conformity = %s, isDispatched = %s, isDeleted = %s,
-                            isReplishment = %s, reportId = %s, imageObjKeyId = %s
-                        WHERE id = %s
-                        """
-                        update_values = (
-                            row['IMG_ID'], 
-                            row['RACK_ID'] if not row['RACK_ID'] else "", 
-                            row['BOXNUMBER'] if not row['BOXNUMBER'] else "", 
-                            row['INVOICE_NUMBER'] if not row['INVOICE_NUMBER'] else "",
-                            row['BOXQUANTITY'] if not row['BOXQUANTITY'] else "", 
-                            row['PARTNUMBER'] if not row['PARTNUMBER'] else "", 
-                            row['EXCLUSION'], 
-                            status,
-                            is_non_conformity, 
-                            False, 
-                            False, 
-                            False, 
-                            report_id, 
-                            image_obj_key_id, 
-                            existing[0]
-                        )
-                        cursor.execute(update_query, update_values)
-                        print(f"Updated record with id = {existing[0]}")
-                    else:
-                        # --- Insert new record ---
-                        insert_query = """
-                        INSERT INTO inferances (
-                            uniqueId, barcode_number, image_name, rack_id, box_number,
-                            invoice_number, box_quantity, part_number, exclusion, status,
-                            is_non_conformity, isDispatched, isDeleted, isReplishment,
-                            reportId, imageObjKeyId, userId
-                        ) VALUES (
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s, %s,
-                            %s, %s, %s, %s,
-                            %s, %s, %s
-                        )
-                        """
-                        insert_values = (
-                            row['UNIQUE_ID'] if row['UNIQUE_ID'] else "", 
-                            row['BARCODE_ID'] if row['BARCODE_ID'] else "", 
-                            row['IMG_ID'],
-                            row['RACK_ID'] if row['RACK_ID'] else "", 
-                            row['BOXNUMBER'] if row['BOXNUMBER'] else "", 
-                            row['INVOICE_NUMBER'] if row['INVOICE_NUMBER'] else "",
-                            row['BOXQUANTITY'] if row['BOXQUANTITY'] else "", 
-                            row['PARTNUMBER'] if row['PARTNUMBER'] else "",
-                            row['EXCLUSION'], 
-                            status,
-                            is_non_conformity, 
-                            False, 
-                            False, 
-                            False,
-                            report_id, 
-                            image_obj_key_id, 
-                            user_id
-                        )
-                        cursor.execute(insert_query, insert_values)
-                        print("Inserted new record.")
+    #                 if existing:
+    #                     # --- Update existing record ---
+    #                     update_query = """
+    #                     UPDATE inferances
+    #                     SET
+    #                         image_name = %s, rack_id = %s, box_number = %s, invoice_number = %s,
+    #                         box_quantity = %s, part_number = %s, exclusion = %s, status = %s,
+    #                         is_non_conformity = %s, isDispatched = %s, isDeleted = %s,
+    #                         isReplishment = %s, reportId = %s, imageObjKeyId = %s
+    #                     WHERE id = %s
+    #                     """
+    #                     update_values = (
+    #                         row['IMG_ID'], 
+    #                         row['RACK_ID'] if not row['RACK_ID'] else "", 
+    #                         row['BOXNUMBER'] if not row['BOXNUMBER'] else "", 
+    #                         row['INVOICE_NUMBER'] if not row['INVOICE_NUMBER'] else "",
+    #                         row['BOXQUANTITY'] if not row['BOXQUANTITY'] else "", 
+    #                         row['PARTNUMBER'] if not row['PARTNUMBER'] else "", 
+    #                         row['EXCLUSION'], 
+    #                         status,
+    #                         is_non_conformity, 
+    #                         False, 
+    #                         False, 
+    #                         False, 
+    #                         report_id, 
+    #                         image_obj_key_id, 
+    #                         existing[0]
+    #                     )
+    #                     cursor.execute(update_query, update_values)
+    #                     print(f"Updated record with id = {existing[0]}")
+    #                 else:
+    #                     # --- Insert new record ---
+    #                     insert_query = """
+    #                     INSERT INTO inferances (
+    #                         uniqueId, barcode_number, image_name, rack_id, box_number,
+    #                         invoice_number, box_quantity, part_number, exclusion, status,
+    #                         is_non_conformity, isDispatched, isDeleted, isReplishment,
+    #                         reportId, imageObjKeyId, userId
+    #                     ) VALUES (
+    #                         %s, %s, %s, %s, %s,
+    #                         %s, %s, %s, %s, %s,
+    #                         %s, %s, %s, %s,
+    #                         %s, %s, %s
+    #                     )
+    #                     """
+    #                     insert_values = (
+    #                         row['UNIQUE_ID'] if row['UNIQUE_ID'] else "", 
+    #                         row['BARCODE_ID'] if row['BARCODE_ID'] else "", 
+    #                         row['IMG_ID'],
+    #                         row['RACK_ID'] if row['RACK_ID'] else "", 
+    #                         row['BOXNUMBER'] if row['BOXNUMBER'] else "", 
+    #                         row['INVOICE_NUMBER'] if row['INVOICE_NUMBER'] else "",
+    #                         row['BOXQUANTITY'] if row['BOXQUANTITY'] else "", 
+    #                         row['PARTNUMBER'] if row['PARTNUMBER'] else "",
+    #                         row['EXCLUSION'], 
+    #                         status,
+    #                         is_non_conformity, 
+    #                         False, 
+    #                         False, 
+    #                         False,
+    #                         report_id, 
+    #                         image_obj_key_id, 
+    #                         user_id
+    #                     )
+    #                     cursor.execute(insert_query, insert_values)
+    #                     print("Inserted new record.")
 
-                    conn.commit()
+    #                 conn.commit()
 
-            except Exception as e:
-                print("Insert/Update unsuccessful:", e)
+    #         except Exception as e:
+    #             print("Insert/Update unsuccessful:", e)
 
         # for i in range(len(final_output)):
         #     try:

@@ -5,16 +5,19 @@ class BoxCounter():
         self.pallet_len_inches = 46
         self.pallet_width_inches = 40
         self.back_layers = pd.read_csv("data/part_numbers.csv", index_col="part number")
-        self.interlock_strcture = {"horizontal": 3, "vertical": 2}
+        # self.interlock_strcture = {"horizontal": 3, "vertical": 2}
+        self.interlock_strcture = pd.read_csv("data/interlock.csv", index_col="part number")
 
     def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type, gap_in_inches):
         if stacking_type == "interlock":
-            # pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
-            # box_area = avg_box_length * avg_box_width
+            if not part_number:
+                pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
+                box_area = avg_box_length * avg_box_width
+                
+                boxes_per_layer = pallet_area // box_area
+                return boxes_per_layer
             
-            # boxes_per_layer = pallet_area // box_area
-            # return boxes_per_layer
-            return self.interlock_strcture["horizontal"] + self.interlock_strcture["vertical"]
+            return self.interlock_strcture["horizontal"][part_number] + self.interlock_strcture["vertical"][part_number]
         elif stacking_type == "normal":
             # bottom_boxes = []
             # bottom_most_box = max(box_list, key=lambda x: x[3])
@@ -65,7 +68,7 @@ class BoxCounter():
                 # return i + boxes_per_layer//2
                 front_boxes = i*layers
                 back_boxes = max(len(back_box_list)*(layers - 1), 0)
-                fartest_boxes = max(len(fartest_box_list), 0)
+                fartest_boxes = max(len(fartest_box_list)*(layers - 2), 0)
                 return front_boxes + back_boxes + fartest_boxes
         elif stacking_type == "interlock":
             if pallet_status == "partial":
@@ -91,6 +94,29 @@ class BoxCounter():
                     if stack_count == current_count:
                         front_boxes_list.append(second_top_box)
                 # return i + boxes_per_layer//2
+                if not part_number:
+                    most_matching_record = None
+                    for length, width, height, horizontal, vertical in self.interlock_strcture[['box_length', 'box_width', 'box_height', 'horizontal', 'vertical']].values:
+                        if not most_matching_record:
+                            most_matching_record = (length, width, height, horizontal, vertical)
+                        else:
+                            if abs(length - avg_box_length) < abs(most_matching_record[0] - avg_box_length):
+                                most_matching_record = (length, width, height, horizontal, vertical)
+                            elif abs(width - avg_box_width) < abs(most_matching_record[1] - avg_box_width):
+                                most_matching_record = (length, width, height, horizontal, vertical)
+                            elif abs(height - avg_box_height) < abs(most_matching_record[2] - avg_box_height):
+                                most_matching_record = (length, width, height, horizontal, vertical)
+                    
+                    if most_matching_record:
+                        most_matching_horizontal = most_matching_record[3]
+                        most_matching_vertical = most_matching_record[4]
+                    else:
+                        most_matching_horizontal = 0
+                        most_matching_vertical = 0
+                else:
+                    most_matching_horizontal = self.interlock_strcture["horizontal"][part_number]
+                    most_matching_vertical = self.interlock_strcture["vertical"][part_number]
+
                 front_horizontal_boxes = []
                 front_vertical_boxes = []
 
@@ -129,12 +155,12 @@ class BoxCounter():
                 print("fartest horizontal boxes", len(fartest_horizontal_boxes))
                 print("fartest vertical boxes", len(fartest_vertical_boxes))
 
-                total_extra_boxes += len(front_horizontal_boxes) * self.interlock_strcture["horizontal"]
-                total_extra_boxes += len(front_vertical_boxes) * self.interlock_strcture["vertical"]
-                total_extra_boxes += len(back_horizontal_boxes) * max(self.interlock_strcture["horizontal"] - 1, 0)
-                total_extra_boxes += len(back_vertical_boxes) * max(self.interlock_strcture["vertical"] - 1, 0)
-                total_extra_boxes += len(fartest_horizontal_boxes) * max(self.interlock_strcture["horizontal"] - 2, 0)
-                total_extra_boxes += len(fartest_vertical_boxes) * max(self.interlock_strcture["vertical"] - 2, 0)
+                total_extra_boxes += len(front_horizontal_boxes) * most_matching_horizontal
+                total_extra_boxes += len(front_vertical_boxes) * most_matching_vertical
+                total_extra_boxes += len(back_horizontal_boxes) * max(most_matching_horizontal - 1, 0)
+                total_extra_boxes += len(back_vertical_boxes) * max(most_matching_vertical - 1, 0)
+                total_extra_boxes += len(fartest_horizontal_boxes) * max(most_matching_horizontal - 2, 0)
+                total_extra_boxes += len(fartest_vertical_boxes) * max(most_matching_vertical - 2, 0)
 
                 return total_extra_boxes
             

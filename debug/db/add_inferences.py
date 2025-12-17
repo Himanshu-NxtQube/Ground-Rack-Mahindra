@@ -111,111 +111,118 @@ def insert_record(image_name, rack_id, box_number, invoice_number, box_quantity,
         print("Insert/Update unsuccessful:", e)
 
 with conn.cursor() as cursor:
+    # records = [
+    #     # DJI_0012.JPG
+    #     [
+    #         "DJI_0012.JPG",
+    #         "HD-02/A/32", "", "", "", "", "empty rack",
+    #         "HD-02/A/31", "1805AW50001N", "24", "NA", "FULL", ""
+    #     ],
+
+    #     # DJI_0013.JPG
+    #     [
+    #         "DJI_0013.JPG",
+    #         "HD-02/A/30", "1805AW00011N", "36", "NA", "FULL", "",
+    #         "HD-02/A/29", "1805AW00011N", "37", "NA", "Partial", ""
+    #     ],
+
+    #     # DJI_0014.JPG
+    #     [
+    #         "DJI_0014.JPG",
+    #         "HD-02/A/28", "1805AAA07851N", "53", "NA", "Partial", "",
+    #         "HD-02/A/27", "1805AAA07851N", "58", "NA", "Partial", ""
+    #     ],
+
+    #     # DJI_0020.JPG
+    #     [
+    #         "DJI_0020.JPG",
+    #         "HD-04/A/34", "", "", "NA", "NA", "empty rack",
+    #         "HD-04/A/33", "1301EW500111N", "16", "NA", "FULL", ""
+    #     ],
+
+    #     # DJI_0022.JPG
+    #     [
+    #         "DJI_0022.JPG",
+    #         "HD-04/A/28", "2301EW5G0090N", "12", "NA", "FULL", "",
+    #         "HD-04/A/27", "2301EW5G0090N", "12", "NA", "FULL", ""
+    #     ],
+
+    #     # DJI_0720.JPG
+    #     [
+    #         "DJI_0720.JPG",
+    #         "HD-02/A/02", "", "", "NA", "NA", "empty rack",
+    #         "HD-02/A/01", "1805AS200221N", "48", "NA", "FULL", ""
+    #     ],
+
+    #     # DJI_0721.JPG
+    #     [
+    #         "DJI_0721.JPG",
+    #         "HD-02/A/04", "1805AS200221N", "44", "NA", "Partial", "",
+    #         "HD-02/A/03", "", "", "NA", "NA", "empty rack"
+    #     ],
+
+    #     # DJI_0722.JPG
+    #     [
+    #         "DJI_0722.JPG",
+    #         "HD-02/A/06", "1805AS200221N", "56", "NA", "Full", "",
+    #         "HD-02/A/05", "1805AS200221N", "39", "NA", "Partial", ""
+    #     ],
+
+    #     # DJI_0725.JPG
+    #     [
+    #         "DJI_0725.JPG",
+    #         "HD-02/A/16", "1805AAA07681N", "42", "NA", "Full", "",
+    #         "HD-02/A/15", "1805AAA07681N", "23", "NA", "Partial", ""
+    #     ],
+
+    #     # DJI_0729.JPG
+    #     [
+    #         "DJI_0729.JPG",
+    #         "HD-02/A/28", "1805AAA07851N", "46", "NA", "Partial", "",
+    #         "HD-02/A/27", "1805AAA07851N", "60", "NA", "Full", ""
+    #     ],
+
+    #     # DJI_0730.JPG
+    #     [
+    #         "DJI_0730.JPG",
+    #         "HD-02/A/30", "1805AW500011N", "42", "NA", "Full", "",
+    #         "HD-02/A/29", "1805AW500011N", "37", "NA", "Partial", ""
+    #     ],
+
+    #     # DJI_0731.JPG
+    #     [
+    #         "DJI_0731.JPG",
+    #         "HD-02/A/34", "1805AW500061N", "51", "NA", "Partial", "",
+    #         "HD-02/A/33", "1805AW500061N", "36", "NA", "Full", ""
+    #     ],
+
+    #     # DJI_0732.JPG
+    #     [
+    #         "DJI_0732.JPG",
+    #         "HD-02/A/36", "1305AW500061N", "71", "NA", "Partial", "",
+    #         "HD-02/A/35", "1305AW500061N", "60", "NA", "Full", ""
+    #     ],
+
+    #     # DJI_0740.JPG
+    #     [
+    #         "DJI_0740.JPG",
+    #         "HD-04/A/10", "2301EAG00081S", "12", "NA", "Full", "",
+    #         "HD-04/A/09", "2301EAG00081S", "12", "NA", "Full", ""
+    #     ],
+
+    #     # DJI_0741.JPG
+    #     [
+    #         "DJI_0741.JPG",
+    #         "HD-04/A/12", "2301EAG00081S", "16", "NA", "Full", "",
+    #         "HD-04/A/11", "", "", "NA", "", "empty rack"
+    #     ],
+    # ]
     records = [
-        # DJI_0012.JPG
         [
-            "DJI_0012.JPG",
-            "HD-02/A/32", "", "", "", "", "empty rack",
-            "HD-02/A/31", "1805AW50001N", "24", "NA", "FULL", ""
-        ],
-
-        # DJI_0013.JPG
-        [
-            "DJI_0013.JPG",
-            "HD-02/A/30", "1805AW00011N", "36", "NA", "FULL", "",
-            "HD-02/A/29", "1805AW00011N", "37", "NA", "Partial", ""
-        ],
-
-        # DJI_0014.JPG
-        [
-            "DJI_0014.JPG",
-            "HD-02/A/28", "1805AAA07851N", "53", "NA", "Partial", "",
-            "HD-02/A/27", "1805AAA07851N", "58", "NA", "Partial", ""
-        ],
-
-        # DJI_0020.JPG
-        [
-            "DJI_0020.JPG",
-            "HD-04/A/34", "", "", "NA", "NA", "empty rack",
-            "HD-04/A/33", "1301EW500111N", "16", "NA", "FULL", ""
-        ],
-
-        # DJI_0022.JPG
-        [
-            "DJI_0022.JPG",
-            "HD-04/A/28", "2301EW5G0090N", "12", "NA", "FULL", "",
-            "HD-04/A/27", "2301EW5G0090N", "12", "NA", "FULL", ""
-        ],
-
-        # DJI_0720.JPG
-        [
-            "DJI_0720.JPG",
-            "HD-02/A/02", "", "", "NA", "NA", "empty rack",
-            "HD-02/A/01", "1805AS200221N", "48", "NA", "FULL", ""
-        ],
-
-        # DJI_0721.JPG
-        [
-            "DJI_0721.JPG",
-            "HD-02/A/04", "1805AS200221N", "44", "NA", "Partial", "",
-            "HD-02/A/03", "", "", "NA", "NA", "empty rack"
-        ],
-
-        # DJI_0722.JPG
-        [
-            "DJI_0722.JPG",
-            "HD-02/A/06", "1805AS200221N", "56", "NA", "Full", "",
-            "HD-02/A/05", "1805AS200221N", "39", "NA", "Partial", ""
-        ],
-
-        # DJI_0725.JPG
-        [
-            "DJI_0725.JPG",
-            "HD-02/A/16", "1805AAA07681N", "42", "NA", "Full", "",
-            "HD-02/A/15", "1805AAA07681N", "23", "NA", "Partial", ""
-        ],
-
-        # DJI_0729.JPG
-        [
-            "DJI_0729.JPG",
-            "HD-02/A/28", "1805AAA07851N", "46", "NA", "Partial", "",
-            "HD-02/A/27", "1805AAA07851N", "60", "NA", "Full", ""
-        ],
-
-        # DJI_0730.JPG
-        [
-            "DJI_0730.JPG",
-            "HD-02/A/30", "1805AW500011N", "42", "NA", "Full", "",
-            "HD-02/A/29", "1805AW500011N", "37", "NA", "Partial", ""
-        ],
-
-        # DJI_0731.JPG
-        [
-            "DJI_0731.JPG",
-            "HD-02/A/34", "1805AW500061N", "51", "NA", "Partial", "",
-            "HD-02/A/33", "1805AW500061N", "36", "NA", "Full", ""
-        ],
-
-        # DJI_0732.JPG
-        [
-            "DJI_0732.JPG",
-            "HD-02/A/36", "1305AW500061N", "71", "NA", "Partial", "",
-            "HD-02/A/35", "1305AW500061N", "60", "NA", "Full", ""
-        ],
-
-        # DJI_0740.JPG
-        [
-            "DJI_0740.JPG",
-            "HD-04/A/10", "2301EAG00081S", "12", "NA", "Full", "",
-            "HD-04/A/09", "2301EAG00081S", "12", "NA", "Full", ""
-        ],
-
-        # DJI_0741.JPG
-        [
-            "DJI_0741.JPG",
-            "HD-04/A/12", "2301EAG00081S", "16", "NA", "Full", "",
-            "HD-04/A/11", "", "", "NA", "", "empty rack"
-        ],
+            "DJI_0019.JPG",
+            "HD-02/A/34", "", "", "", "", "empty rack",
+            "HD-02/A/33", "1805AW500061N", "20", "NA", "Partial", ""
+        ]
     ]
     report_id = rds_operator.create_report(conn, 14)
     # format

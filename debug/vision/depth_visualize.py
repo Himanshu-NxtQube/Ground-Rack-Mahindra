@@ -4,18 +4,18 @@ import os
 import matplotlib.pyplot as plt
 
 # Add parent directory to path to allow importing from inference
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
 
-from inference.depth_estimation import DepthEstimator
+from src.inference.depth_estimation import DepthEstimator
 
 # Initialize with the correct model name
 depth_estimator = DepthEstimator("depth_anything_v2")
 
-image_path = "images/DJI_0021.JPG"
+image_path = "images/DJI_0019.JPG"
 # Ensure the image path is correct relative to where the script is run or absolute
 if not os.path.exists(image_path):
     # Try finding it relative to src if run from there
-    possible_path = os.path.join("..", "images", "DJI_0021.JPG")
+    possible_path = os.path.join("..", "images", "DJI_0017.JPG")
     if os.path.exists(possible_path):
         image_path = possible_path
     else:

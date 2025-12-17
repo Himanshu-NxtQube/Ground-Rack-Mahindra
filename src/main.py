@@ -11,21 +11,36 @@ from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
 from inference.gap_detector import find_gap
 from inference.boundary_detection import BoundaryDetector
+from inference.rack_box_extraction import RackBoxExtractor
+from inference.google_ocr import OCRClient
+from inference.infer_func import infer_Q3_Q4
+from utils.rds_operator import RDSOperator
+from inference.rds_insert_data import RDSInsertData
+from utils.s3_operator import upload_images
 
 box_detector = BoxDetector()
 box_counter = BoxCounter()
 pallet_detector = PalletDetector()
 converter = Converter()
+rds_operator = RDSOperator()
+rds_insert_data = RDSInsertData()
+ocr_client = OCRClient()
 visualizer = Visualizer()
 stack_analyzer = StackingAnalyzer()
 depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
+rack_box_extractor = RackBoxExtractor()
 boundary_detector = BoundaryDetector()
 images_dir = "image/"
 
-def process_single_image(image_path, debug=False):
+def process_single_image(image_path, record_id, debug=False):
+    image_name = os.path.basename(image_path)
     boundaries = boundary_detector.get_boundaries(image_path)
+    annotations = ocr_client.get_annotations(image_path)
+    rack_dict = rack_box_extractor.extract_rack_info(annotations, boundaries)
+    rack_dict = infer_Q3_Q4(rack_dict)
+
     depth_map = depth_estimator.get_depth_map(image_path)
     
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
@@ -100,10 +115,19 @@ def process_single_image(image_path, debug=False):
     print(f"{'Extra Boxes':<20} | {format_value(extra_left_box_count, 15)} | {format_value(extra_right_box_count, 15)}")
     print(f"{'Total Boxes':<20} | {format_value(total_left_boxes, 15)} | {format_value(total_right_boxes, 15)}")
     print("\n")
+     
+    s3_key, s3_url = upload_images(image_path)
+    key_id = rds_operator.store_img_info(image_path)
+    #                       image_name, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""
+    rds_operator.insert_record(image_name, record_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
+    rds_operator.insert_record(image_name, record_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
+
+report_id = rds_operator.create_report(conn, 14)
 for image_name in sorted(os.listdir(images_dir)):
     # if int(image_name[4:8]) != 720:
         # continue
+    
     print("Image:",image_name)
     image_path = os.path.join(images_dir, image_name) 
-    process_single_image(image_path, debug=True)
+    process_single_image(image_path, record_id, debug=True)
