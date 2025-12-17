@@ -1,5 +1,4 @@
 from google.cloud import vision
-from package.config_loader import get_config
 import os
 import io
 
@@ -7,7 +6,7 @@ class OCRClient:
         
     def __init__(self):
         self.CONFIG = get_config()
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = self.CONFIG['google_vision_client']['credentials']
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = './credentials/GoogleVisionCredential.json'
         self.client = vision.ImageAnnotatorClient()
     
     def get_annotations(self, image_path: str):
