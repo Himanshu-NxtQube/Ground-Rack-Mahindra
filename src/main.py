@@ -123,7 +123,7 @@ def process_single_image(image_path, record_id, debug=False):
     rds_operator.insert_record(image_name, record_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", part_number, image_obj_key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
 
-report_id = rds_operator.create_report(conn, 14)
+report_id = rds_operator.create_report(14)
 for image_name in sorted(os.listdir(images_dir)):
     # if int(image_name[4:8]) != 720:
         # continue
