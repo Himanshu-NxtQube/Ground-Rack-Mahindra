@@ -11,7 +11,7 @@ class RDSInsertData:
             port=int(os.getenv("rds_port", 3306))                                # Default MySQL port
         )
     
-    def insert_record(self, image_name, record_id, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""):
+    def insert_record(self, image_name, report_id, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""):
         try:
             with self.conn.cursor() as cursor:
                 # --- Check for existing record ---
