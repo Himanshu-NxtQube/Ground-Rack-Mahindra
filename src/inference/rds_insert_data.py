@@ -98,7 +98,7 @@ class RDSInsertData:
                     cursor.execute(insert_query, insert_values)
                     print("Inserted new record.")
 
-                conn.commit()
+                self.conn.commit()
 
         except Exception as e:
             print("Insert/Update unsuccessful:", e)
