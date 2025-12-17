@@ -130,4 +130,4 @@ for image_name in sorted(os.listdir(images_dir)):
     
     print("Image:",image_name)
     image_path = os.path.join(images_dir, image_name) 
-    process_single_image(image_path, record_id, debug=True)
+    process_single_image(image_path, report_id, debug=True)
