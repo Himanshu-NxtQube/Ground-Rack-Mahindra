@@ -9,11 +9,12 @@ class BoxCounter():
 
     def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type, gap_in_inches):
         if stacking_type == "interlock":
-            pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
-            box_area = avg_box_length * avg_box_width
+            # pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
+            # box_area = avg_box_length * avg_box_width
             
-            boxes_per_layer = pallet_area // box_area
-            return boxes_per_layer
+            # boxes_per_layer = pallet_area // box_area
+            # return boxes_per_layer
+            return self.interlock_strcture["horizontal"] + self.interlock_strcture["vertical"]
         elif stacking_type == "normal":
             # bottom_boxes = []
             # bottom_most_box = max(box_list, key=lambda x: x[3])
@@ -87,7 +88,8 @@ class BoxCounter():
                     count11 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
                     count12 = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
                     current_count = max(count11, count12)
-                    front_boxes_list.append(second_top_box)
+                    if stack_count == current_count:
+                        front_boxes_list.append(second_top_box)
                 # return i + boxes_per_layer//2
                 front_horizontal_boxes = []
                 front_vertical_boxes = []
