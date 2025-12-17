@@ -50,7 +50,10 @@ class BoxCounter():
                 rx = second_top_box[2] - 150
                 lx = second_top_box[0] + 150
                 cy = (second_top_box[1]+second_top_box[3])/2
-                current_count = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
+
+                count11 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
+                count12 = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
+                current_count = max(count11, count12)
             return i + boxes_per_layer//2
         return 0
     

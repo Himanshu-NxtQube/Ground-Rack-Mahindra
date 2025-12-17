@@ -22,13 +22,15 @@ depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
 boundary_detector = BoundaryDetector()
-images_dir = "images/"
+images_dir = "image/"
 
 def process_single_image(image_path, debug=False):
     boundaries = boundary_detector.get_boundaries(image_path)
+    depth_map = depth_estimator.get_depth_map(image_path)
     
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
     left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
+    left_boxes, right_boxes = box_detector.filter_front_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
 
     left_box_dimensions = converter.get_box_dimensions(left_boxes, left_pallet)
     right_box_dimensions = converter.get_box_dimensions(right_boxes, right_pallet)
@@ -39,7 +41,6 @@ def process_single_image(image_path, debug=False):
     left_boxes_per_stack = box_counter.get_boxes_per_stack(left_boxes)
     right_boxes_per_stack = box_counter.get_boxes_per_stack(right_boxes)
 
-    depth_map = depth_estimator.get_depth_map(image_path)
     pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 
     left_pallet_status = pallet_status_result['left_status']
@@ -49,8 +50,8 @@ def process_single_image(image_path, debug=False):
     right_status_bbox = pallet_status_result['right_bbox']
 
     if debug:
-        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions, left_pallet)
-        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions, right_pallet)
+        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions, left_pallet, depth_map)
+        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions, right_pallet, depth_map)
     
     left_gap = find_gap(left_pallet, left_boxes)
     right_gap = find_gap(right_pallet, right_boxes)
@@ -99,9 +100,9 @@ def process_single_image(image_path, debug=False):
     print(f"{'Total Boxes':<20} | {format_value(total_left_boxes, 15)} | {format_value(total_right_boxes, 15)}")
     print("\n")
 
-for image_name in os.listdir(images_dir):
-    # if int(image_name[4:8]) != 13:
-    #     continue
+for image_name in sorted(os.listdir(images_dir)):
+    # if int(image_name[4:8]) != 720:
+        # continue
     print("Image:",image_name)
     image_path = os.path.join(images_dir, image_name) 
     process_single_image(image_path, debug=True)

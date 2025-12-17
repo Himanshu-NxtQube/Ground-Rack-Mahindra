@@ -38,12 +38,14 @@ class StackValidator:
 
         top_stack_len = len(box_stacks[0])
         print("Top stack Len:", top_stack_len)
-        if len(box_stacks) >= 1:
+        if len(box_stacks) > 1:
             stack_sum = 0
             for stack in box_stacks[1:]:
                 stack_sum += len(stack)
             avg_boxes_per_stack = round(stack_sum/(len(box_stacks) - 1))
             print("Avg boxes Per stack:", avg_boxes_per_stack)
+        elif len(box_stacks) == 1:
+            avg_boxes_per_stack = len(box_stacks[0])
         else:
             avg_boxes_per_stack = None
         if avg_boxes_per_stack and top_stack_len == avg_boxes_per_stack:

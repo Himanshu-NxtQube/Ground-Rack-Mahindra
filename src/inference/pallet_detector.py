@@ -3,7 +3,7 @@ import cv2
 
 class PalletDetector:
     def __init__(self):
-        self.model = YOLO("models/Mahindra_ground_pallet.pt", verbose=False)
+        self.model = YOLO("models/new_mahindra_gpallet_12_12_25.pt", verbose=False)
 
     def detect(self, image_path, boundaries):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries

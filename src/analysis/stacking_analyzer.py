@@ -17,7 +17,7 @@ class StackingAnalyzer:
 
     def analyze(self, box_dimensions):
         if len(box_dimensions)==0:
-            return {"stacking_type": "empty", "avg_box_length": 0, "avg_box_width": 0, "avg_box_height": 0}
+            return {"stacking_type": "N/A", "avg_box_length": 0, "avg_box_width": 0, "avg_box_height": 0}
 
         box_vertical_len_avg, box_horizontal_len_avg = self.get_avg_dimensions(box_dimensions)
         stacking_types = []
