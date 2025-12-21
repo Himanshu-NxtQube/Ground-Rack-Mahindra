@@ -10,7 +10,6 @@ def find_gap(pallet, boxes):
         cy = (box[1] + box[3])/2
         if (last_y is None) or (abs(last_y - cy) < 75):
             last_y = cy
-            print("counted as bottom box")
             bottom_len_of_boxes += box[2] - box[0]
         else:
             break
