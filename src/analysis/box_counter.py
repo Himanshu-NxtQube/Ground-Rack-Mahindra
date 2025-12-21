@@ -86,17 +86,14 @@ class BoxCounter():
                 # return i + boxes_per_layer//2
                 front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
                 if part_number and part_number not in self.interlock_strcture.index:
-                    most_matching_record = None
-                    for length, width, height, horizontal, vertical in self.interlock_strcture[['box_length', 'box_width', 'box_height', 'horizontal', 'vertical']].values:
-                        if not most_matching_record:
-                            most_matching_record = (length, width, height, horizontal, vertical)
-                        else:
-                            if abs(length - avg_box_length) < abs(most_matching_record[0] - avg_box_length):
-                                most_matching_record = (length, width, height, horizontal, vertical)
-                            elif abs(width - avg_box_width) < abs(most_matching_record[1] - avg_box_width):
-                                most_matching_record = (length, width, height, horizontal, vertical)
-                            elif abs(height - avg_box_height) < abs(most_matching_record[2] - avg_box_height):
-                                most_matching_record = (length, width, height, horizontal, vertical)
+                    most_matching_record = min(
+                        self.interlock_strcture[['box_length', 'box_width', 'box_height', 'horizontal', 'vertical']].values,
+                        key=lambda x: (
+                            abs(x[0] - avg_box_length) + 
+                            abs(x[1] - avg_box_width) + 
+                            abs(x[2] - avg_box_height)
+                        )
+                    ) if len(self.interlock_strcture) > 0 else None
                     
                     if most_matching_record:
                         most_matching_horizontal = most_matching_record[3]
