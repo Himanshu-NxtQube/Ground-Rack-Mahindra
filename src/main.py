@@ -2,10 +2,9 @@ import os
 import cv2
 from analysis.stacking_analyzer import StackingAnalyzer
 from analysis.box_counter import BoxCounter 
+from analysis.converter import Converter
 from inference.box_detector import BoxDetector
 from inference.pallet_detector import PalletDetector
-from analysis.converter import Converter
-from utils.visualizer import Visualizer
 from inference.depth_estimation import DepthEstimator
 from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
@@ -14,8 +13,8 @@ from inference.boundary_detection import BoundaryDetector
 from inference.rack_box_extraction import RackBoxExtractor
 from inference.google_ocr import OCRClient
 from inference.infer_func import infer_Q3_Q4
+from utils.visualizer import Visualizer
 from utils.rds_operator import RDSOperator
-from inference.rds_insert_data import RDSInsertData
 from utils.s3_operator import upload_images
 
 box_detector = BoxDetector()
@@ -23,18 +22,18 @@ box_counter = BoxCounter()
 pallet_detector = PalletDetector()
 converter = Converter()
 rds_operator = RDSOperator()
-rds_insert_data = RDSInsertData()
 ocr_client = OCRClient()
 visualizer = Visualizer()
 stack_analyzer = StackingAnalyzer()
-depth_estimator = DepthEstimator("depth_anything_v2")
+depth_estimator = DepthEstimator("apple_depth_pro")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
 rack_box_extractor = RackBoxExtractor()
 boundary_detector = BoundaryDetector()
-images_dir = "images/"
+images_dir = "image/"
+upload = False
 
-def process_single_image(image_path, report_id, debug=False):
+def process_single_image(image_path, report_id, debug=False, upload=False):
     image_name = os.path.basename(image_path)
     boundaries = boundary_detector.get_boundaries(image_path)
     annotations = ocr_client.get_annotations(image_path)
@@ -53,8 +52,8 @@ def process_single_image(image_path, report_id, debug=False):
     left_structure = stack_analyzer.analyze(left_box_dimensions)
     right_structure = stack_analyzer.analyze(right_box_dimensions)
 
-    left_boxes_per_stack = box_counter.get_boxes_per_stack(left_boxes)
-    right_boxes_per_stack = box_counter.get_boxes_per_stack(right_boxes)
+    left_box_stacks = box_counter.get_box_stack(left_boxes)
+    right_box_stacks = box_counter.get_box_stack(right_boxes)
 
     pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 
@@ -75,15 +74,15 @@ def process_single_image(image_path, report_id, debug=False):
     right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_boxes_per_stack, f"{image_name}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
-    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_boxes_per_stack, f"{image_name}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
+    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_box_stacks, f"{image_name}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
+    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_box_stacks, f"{image_name}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
 
-    left_stack_count = stack_validator.count_stack(left_boxes, left_boxes_per_stack, left_pallet_status, left_pallet, left_status_bbox)
-    right_stack_count = stack_validator.count_stack(right_boxes, right_boxes_per_stack, right_pallet_status, right_pallet, right_status_bbox)
+    left_stack_count = stack_validator.count_stack(left_boxes, left_box_stacks, left_pallet_status, left_pallet, left_status_bbox)
+    right_stack_count = stack_validator.count_stack(right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{image_name}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer)
-    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{image_name}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer)
+    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{image_name}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer, left_box_stacks)
+    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{image_name}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer, right_box_stacks)
 
     if left_box_count_per_layer is not None and left_stack_count is not None:
         total_left_boxes = (left_box_count_per_layer * left_stack_count) + extra_left_box_count
@@ -115,19 +114,25 @@ def process_single_image(image_path, report_id, debug=False):
     print(f"{'Extra Boxes':<20} | {format_value(extra_left_box_count, 15)} | {format_value(extra_right_box_count, 15)}")
     print(f"{'Total Boxes':<20} | {format_value(total_left_boxes, 15)} | {format_value(total_right_boxes, 15)}")
     print("\n")
-     
-    # s3_key, s3_url = upload_images(image_path)
-    key_id = rds_operator.store_img_info(image_path)
-    #                       image_name, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""
-    rds_insert_data.insert_record(image_name, report_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", "", key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
-    rds_insert_data.insert_record(image_name, report_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", "", key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
+    if upload:
+        s3_key, s3_url = upload_images(image_path)
+        key_id = rds_operator.store_img_info(image_path)
+                                #  image_name, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""
+        rds_operator.insert_record(image_name, report_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", "", key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
+        rds_operator.insert_record(image_name, report_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", "", key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
-report_id = rds_operator.create_report(14)
-for image_name in sorted(os.listdir(images_dir)):
-    # if int(image_name[4:8]) != 720:
-        # continue
-    
-    print("Image:",image_name)
-    image_path = os.path.join(images_dir, image_name) 
-    process_single_image(image_path, report_id, debug=True)
+def process_dir(dir_name, upload=False):
+    report_id = 0
+    if upload:
+        report_id = rds_operator.create_report(14)
+    for image_name in sorted(os.listdir(dir_name)):
+        if int(image_name[4:8]) != 725:
+            continue
+        
+        print("Image:",image_name)
+        image_path = os.path.join(images_dir, image_name) 
+        process_single_image(image_path, report_id, debug=True, upload=upload)
+
+if __name__ == "__main__":
+    process_dir(images_dir, upload=upload)
