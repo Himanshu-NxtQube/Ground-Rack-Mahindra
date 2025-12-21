@@ -85,7 +85,7 @@ class BoxCounter():
                 #       front_boxes_list.append(second_top_box)
                 # return i + boxes_per_layer//2
                 front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
-                if not part_number:
+                if part_number and part_number not in self.interlock_strcture.index:
                     most_matching_record = None
                     for length, width, height, horizontal, vertical in self.interlock_strcture[['box_length', 'box_width', 'box_height', 'horizontal', 'vertical']].values:
                         if not most_matching_record:
