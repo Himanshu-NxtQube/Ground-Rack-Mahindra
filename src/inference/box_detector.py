@@ -56,9 +56,9 @@ class BoxDetector:
             box_depth = depth_map[b_cy][b_cx]
             diff = np.abs(np.float64(right_pallet_depth) - np.float64(box_depth))
 
-            if diff >= 30 and diff <= 60:
+            if diff >= 25 and diff <= 50:
                 back_right_boxes.append(box)
-            elif diff > 60:
+            elif diff > 50:
                 fartest_right_boxes.append(box)
             else:
                 filter_right_boxes.append(box)
