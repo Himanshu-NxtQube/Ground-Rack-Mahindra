@@ -95,7 +95,7 @@ class BoxCounter():
                         )
                     ) if len(self.interlock_strcture) > 0 else None
                     
-                    if most_matching_record:
+                    if most_matching_record is not None:
                         most_matching_horizontal = most_matching_record[3]
                         most_matching_vertical = most_matching_record[4]
                     else:
