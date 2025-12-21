@@ -10,7 +10,7 @@ class BoxCounter():
 
     def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type, gap_in_inches):
         if stacking_type == "interlock":
-            if not part_number and part_number not in self.interlock_strcture.index:
+            if part_number and part_number not in self.interlock_strcture.index:
                 pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
                 box_area = avg_box_length * avg_box_width
                 
