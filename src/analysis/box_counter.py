@@ -159,7 +159,7 @@ class BoxCounter():
     
     def get_box_stack(self, boxes):
         if not boxes:
-            return 0
+            return []
         boxes_per_stack_sum = 0
         sorted_boxes = sorted(boxes, key=lambda x: (x[1]+x[3])/2)
         box_stacks = []
