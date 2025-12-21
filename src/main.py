@@ -1,5 +1,6 @@
 import os
 import cv2
+import json
 from analysis.stacking_analyzer import StackingAnalyzer
 from analysis.box_counter import BoxCounter 
 from analysis.converter import Converter
@@ -25,12 +26,12 @@ rds_operator = RDSOperator()
 ocr_client = OCRClient()
 visualizer = Visualizer()
 stack_analyzer = StackingAnalyzer()
-depth_estimator = DepthEstimator("apple_depth_pro")
+depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
 rack_box_extractor = RackBoxExtractor()
 boundary_detector = BoundaryDetector()
-images_dir = "image/"
+images_dir = "images/"
 upload = False
 
 def process_single_image(image_path, report_id, debug=False, upload=False):
@@ -54,6 +55,22 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     left_box_stacks = box_counter.get_box_stack(left_boxes)
     right_box_stacks = box_counter.get_box_stack(right_boxes)
+
+    # print("Box Stacks:")
+    # for left_box_stack, right_box_stack in zip(left_box_stacks, right_box_stacks):
+    #     print(f"{left_box_stack} | {right_box_stack}") 
+    
+    # print(json.dumps(right_box_stacks, indent=4))
+    print("Box Stacks:")
+    for left_box_stack, right_box_stack in zip(left_box_stacks, right_box_stacks):
+        for l, r in zip(left_box_stack, right_box_stack):
+            if l:
+                print('◻️', end='')
+            if r:
+                print("\t\t")
+                print('📦')
+        print()
+    exit(0)
 
     pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 

@@ -84,7 +84,9 @@ class BoxDetector:
 
             if (left_line_x > cx) or (cx > right_line_x) or (upper_line_y > cy) or (cy > lower_line_y):
                 continue
-
+            
+            box = [round(float(c), 2) for c in box]
+        
             if left_pallet is not None and left_pallet[0] < cx < left_pallet[2]:
                 left_boxes.append(box)
             elif right_pallet is not None and right_pallet[0] < cx < right_pallet[2]:

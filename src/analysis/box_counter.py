@@ -168,12 +168,12 @@ class BoxCounter():
             center_y = (box[1] + box[3])/2 
             if not last_y:
                 last_y = center_y
-                box_stacks.append(box)
+                box_stacks.append([box])
                 continue
             if abs(last_y - center_y) < 75:
                 box_stacks[-1].append(box)
             else:
-                box_stacks.append(box)
+                box_stacks.append([box])
             last_y = center_y
         
         # [print(stack) for stack in box_stacks]
