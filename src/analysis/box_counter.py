@@ -55,7 +55,7 @@ class BoxCounter():
                 #     count12 = sum(1 for b in box_list if b[0] <= rx <= b[2] and b[1] >= cy)
                 #     current_count = max(count11, count12)
                 # return i + boxes_per_layer//2
-                front_boxes = len(box_stacks[0])*layers if len(box_stacks) > 0 else 0
+                front_boxes = len(box_stacks[0])*layers if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else 0
                 back_boxes = max(len(back_box_list)*(layers - 1), 0)
                 fartest_boxes = max(len(fartest_box_list)*(layers - 2), 0)
                 return front_boxes + back_boxes + fartest_boxes
@@ -84,7 +84,7 @@ class BoxCounter():
                 #     if stack_count == current_count:
                 #       front_boxes_list.append(second_top_box)
                 # return i + boxes_per_layer//2
-                front_boxes_list = box_stacks[0]
+                front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
                 if not part_number:
                     most_matching_record = None
                     for length, width, height, horizontal, vertical in self.interlock_strcture[['box_length', 'box_width', 'box_height', 'horizontal', 'vertical']].values:
