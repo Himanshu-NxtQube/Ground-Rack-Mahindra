@@ -26,12 +26,12 @@ rds_operator = RDSOperator()
 ocr_client = OCRClient()
 visualizer = Visualizer()
 stack_analyzer = StackingAnalyzer()
-depth_estimator = DepthEstimator("apple_depth_pro")
+depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
 rack_box_extractor = RackBoxExtractor()
 boundary_detector = BoundaryDetector()
-images_dir = "image/"
+images_dir = "images/"
 upload = False
 
 def process_single_image(image_path, report_id, debug=False, upload=False):
@@ -45,16 +45,19 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
     left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
-    left_boxes, right_boxes, back_left_boxes, back_right_boxes, fartest_left_boxes, fartest_right_boxes = box_detector.filter_front_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
+    left_boxes, right_boxes = box_detector.classify_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
 
-    left_box_dimensions = converter.get_box_dimensions(left_boxes, left_pallet)
-    right_box_dimensions = converter.get_box_dimensions(right_boxes, right_pallet)
+    front_left_boxes = left_boxes[0]
+    front_right_boxes = right_boxes[0]
+
+    left_box_dimensions = converter.get_box_dimensions(front_left_boxes, left_pallet)
+    right_box_dimensions = converter.get_box_dimensions(front_right_boxes, right_pallet)
 
     left_structure = stack_analyzer.analyze(left_box_dimensions)
     right_structure = stack_analyzer.analyze(right_box_dimensions)
 
-    left_box_stacks = box_counter.get_box_stack(left_boxes)
-    right_box_stacks = box_counter.get_box_stack(right_boxes)
+    left_box_stacks = box_counter.get_box_stack(front_left_boxes)
+    right_box_stacks = box_counter.get_box_stack(front_right_boxes)
 
     # print("Box Stacks:")
     # for left_box_stack, right_box_stack in zip(left_box_stacks, right_box_stacks):
@@ -76,11 +79,11 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     right_status_bbox = pallet_status_result['right_bbox']
 
     if debug:
-        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, back_left_boxes, fartest_left_boxes, left_box_dimensions, left_pallet, depth_map)
-        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, back_right_boxes, fartest_right_boxes, right_box_dimensions, right_pallet, depth_map)
+        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions, left_pallet, depth_map)
+        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions, right_pallet, depth_map)
     
-    left_gap = find_gap(left_pallet, left_boxes)
-    right_gap = find_gap(right_pallet, right_boxes)
+    left_gap = find_gap(left_pallet, front_left_boxes)
+    right_gap = find_gap(right_pallet, front_right_boxes)
 
     left_gap_in_inches = converter.convert_gap_in_inches(left_gap)
     right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
@@ -89,12 +92,12 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_box_count_per_layer = box_counter.count_boxes_per_layer(left_box_stacks, f"{image_name.split('.')[0]}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
     right_box_count_per_layer = box_counter.count_boxes_per_layer(right_box_stacks, f"{image_name.split('.')[0]}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
 
-    left_stack_count = stack_validator.count_stack(left_boxes, left_box_stacks, left_pallet_status, left_pallet, left_status_bbox)
-    right_stack_count = stack_validator.count_stack(right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
+    left_stack_count = stack_validator.count_stack(front_left_boxes, left_box_stacks, left_pallet_status, left_pallet, left_status_bbox)
+    right_stack_count = stack_validator.count_stack(front_right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{image_name.split('.')[0]}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer, left_box_stacks)
-    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{image_name.split('.')[0]}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer, right_box_stacks)
+    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{image_name.split('.')[0]}_L", left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer, left_box_stacks)
+    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{image_name.split('.')[0]}_R", right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer, right_box_stacks)
 
     if left_box_count_per_layer is not None and left_stack_count is not None:
         total_left_boxes = (left_box_count_per_layer * left_stack_count) + extra_left_box_count

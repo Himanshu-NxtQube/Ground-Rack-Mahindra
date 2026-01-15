@@ -3,25 +3,33 @@ class Visualizer():
     def __init__(self):
         pass
     
-    def visualize_box_dimensions(self, image_path, side, boxes, back_boxes, fartest_boxes, box_dimensions, pallet, depth_map):
+    def visualize_box_dimensions(self, image_path, side, boxes, box_dimensions, pallet, depth_map):
         image = cv2.imread(image_path)
-        for box in boxes:
-            cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
-            bcx = (box[0] + box[2])/2
-            bcy = (box[1] + box[3])/2
-            cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 3)
-        
-        for box in back_boxes:
-            cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 255), 2)
-            bcx = (box[0] + box[2])/2
-            bcy = (box[1] + box[3])/2
-            cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 255), 3)
 
-        for box in fartest_boxes:
-            cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
-            bcx = (box[0] + box[2])/2
-            bcy = (box[1] + box[3])/2
-            cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
+        colors = [
+            (0, 255, 0),     # Green
+            (0, 255, 255),   # Yellow
+            (0, 165, 255),   # Orange
+            (0, 0, 255)      # Red
+        ]
+        for i, box_layer in enumerate(boxes):
+            for box in box_layer:
+                cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), colors[i%4], 2)
+                bcx = (box[0] + box[2])/2
+                bcy = (box[1] + box[3])/2
+                cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, colors[i], 3)
+        
+        # for box in box_dimensions:
+        #     cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 255), 2)
+        #     bcx = (box[0] + box[2])/2
+        #     bcy = (box[1] + box[3])/2
+        #     cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 255), 3)
+
+        # for box in box_dimensions:
+        #     cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 0, 255), 2)
+        #     bcx = (box[0] + box[2])/2
+        #     bcy = (box[1] + box[3])/2
+        #     cv2.putText(image, f"{depth_map[int(bcy)][int(bcx)]}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
 
         if pallet is not None:
             pcx = (pallet[0] + pallet[2])/2

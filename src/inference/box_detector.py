@@ -4,9 +4,15 @@ import cv2
 
 class BoxDetector:
     def __init__(self):
-        self.model = YOLO("models/Mahindra_g_box_17_back.pt", verbose=False)
+        self.model = YOLO("models/New Ground Box model.pt", verbose=False)
 
-    def filter_front_boxes(self, left_boxes, right_boxes, left_pallet, right_pallet, depth_map):
+        self.layer_wise_depth_diff = {  2: [30], 
+                                        3: [20, 40], 
+                                        4: [15, 30, 45] }
+
+        self.front_layer_threshold = 30
+
+    def classify_boxes(self, left_boxes, right_boxes, left_pallet, right_pallet, total_layers, depth_map):
         if left_pallet is not None:
             lp_cx = int((left_pallet[0] + left_pallet[2])/2)
             lp_cy = int((left_pallet[1] + left_pallet[3])/2)
@@ -26,44 +32,109 @@ class BoxDetector:
         left_pallet_depth = depth_map[lp_cy][lp_cx]
         right_pallet_depth = depth_map[rp_cy][rp_cx]
 
-        filter_left_boxes = []
-        filter_right_boxes = []
+        left_boxes_classified = [[] for _ in range(total_layers)]
+        right_boxes_classified = [[] for _ in range(total_layers)]
 
-        back_left_boxes = []
-        back_right_boxes = []
+        thresholds = self.layer_wise_depth_diff[total_layers]
 
-        fartest_left_boxes = []
-        fartest_right_boxes = []
-
-        for box in left_boxes:
-            b_cx = int((box[0] + box[2])/2)
-            b_cy = int((box[1] + box[3])/2)
+        # for box in left_boxes:
+        #     cx = int((box[0] + box[2])/2)
+        #     cy = int((box[1] + box[3])/2)
             
-            box_depth = depth_map[b_cy][b_cx]
-            diff = np.abs(np.float64(left_pallet_depth) - np.float64(box_depth))
+        #     box_depth = depth_map[cy][cx]
+            
+        #     diff = abs(int(left_pallet_depth) - int(box_depth))
+            
+        #     assigned = False
+        #     for i, threshold in enumerate(thresholds):
+        #         if diff < threshold:
+        #             left_boxes_classified[i].append(box)
+        #             assigned = True
+        #             break
+            
+        #     if not assigned:
+        #         left_boxes_classified[-1].append(box)
+        
+        # for box in right_boxes:
+        #     cx = int((box[0] + box[2])/2)
+        #     cy = int((box[1] + box[3])/2)
+            
+        #     box_depth = depth_map[cy][cx]
 
-            if diff >= 30 and diff <= 60:
-                back_left_boxes.append(box)
-            elif diff > 60:
-                fartest_left_boxes.append(box)
-            else:
-                filter_left_boxes.append(box)
+        #     diff = abs(int(right_pallet_depth) - int(box_depth))
+            
+        #     assigned = False
+        #     for i, threshold in enumerate(thresholds):
+        #         if diff < threshold:
+        #             right_boxes_classified[i].append(box)
+        #             assigned = True
+        #             break
+            
+        #     if not assigned:
+        #         right_boxes_classified[-1].append(box)
+
+
+        left_front_min_depth = float('inf')            
+        for box in left_boxes:
+            cx = int((box[0] + box[2])/2)
+            cy = int((box[1] + box[3])/2)
+            
+            box_depth = depth_map[cy][cx]
+            
+            diff = int(left_pallet_depth) - int(box_depth)
+
+            if diff < self.front_layer_threshold:
+                left_front_min_depth = min(left_front_min_depth, box_depth)
+
+        right_front_min_depth = float('inf')            
+        for box in right_boxes:
+            cx = int((box[0] + box[2])/2)
+            cy = int((box[1] + box[3])/2)
+            
+            box_depth = depth_map[cy][cx]
+            
+            diff = int(right_pallet_depth) - int(box_depth)
+
+            if diff < self.front_layer_threshold:
+                right_front_min_depth = min(right_front_min_depth, box_depth)
+        
+        for box in left_boxes:
+            cx = int((box[0] + box[2])/2)
+            cy = int((box[1] + box[3])/2)
+            
+            box_depth = depth_map[cy][cx]
+            
+            diff = int(left_front_min_depth) - int(box_depth)
+
+            assigned = False
+            for i, threshold in enumerate(thresholds):
+                if diff < threshold:
+                    left_boxes_classified[i].append(box)
+                    assigned = True
+                    break
+            
+            if not assigned:
+                left_boxes_classified[-1].append(box)
 
         for box in right_boxes:
-            b_cx = int((box[0] + box[2])/2)
-            b_cy = int((box[1] + box[3])/2)
+            cx = int((box[0] + box[2])/2)
+            cy = int((box[1] + box[3])/2)
             
-            box_depth = depth_map[b_cy][b_cx]
-            diff = np.abs(np.float64(right_pallet_depth) - np.float64(box_depth))
+            box_depth = depth_map[cy][cx]
+            
+            diff = int(right_front_min_depth) - int(box_depth)
 
-            if diff >= 20 and diff <= 40:
-                back_right_boxes.append(box)
-            elif diff > 40:
-                fartest_right_boxes.append(box)
-            else:
-                filter_right_boxes.append(box)
+            assigned = False
+            for i, threshold in enumerate(thresholds):
+                if diff < threshold:
+                    right_boxes_classified[i].append(box)
+                    assigned = True
+                    break
+            
+            if not assigned:
+                right_boxes_classified[-1].append(box)
 
-        return filter_left_boxes, filter_right_boxes, back_left_boxes, back_right_boxes, fartest_left_boxes, fartest_right_boxes
+        return left_boxes_classified, right_boxes_classified
 
     def detect(self, image_path, boundaries, left_pallet, right_pallet):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
