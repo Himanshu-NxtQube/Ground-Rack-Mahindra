@@ -17,8 +17,12 @@ class BoxDetector:
             cx = int((pallet[0] + pallet[2])/2)
             cy = int((pallet[1] + pallet[3])/2)
         else:
-            cx = 0
-            cy = 0
+            print("Pallet not detected!")
+            return []
+
+        if not total_layers:
+            print("No layers found! Defaulting to 2 layers.")
+            total_layers = 2
 
         pallet_depth = depth_map[cy][cx]
 
