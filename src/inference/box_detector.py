@@ -12,129 +12,51 @@ class BoxDetector:
 
         self.front_layer_threshold = 30
 
-    def classify_boxes(self, left_boxes, right_boxes, left_pallet, right_pallet, total_layers, depth_map):
-        if left_pallet is not None:
-            lp_cx = int((left_pallet[0] + left_pallet[2])/2)
-            lp_cy = int((left_pallet[1] + left_pallet[3])/2)
-            # lp_cy = int(left_pallet[1])
+    def classify_boxes(self, boxes, pallet, total_layers, depth_map):
+        if pallet is not None:
+            cx = int((pallet[0] + pallet[2])/2)
+            cy = int((pallet[1] + pallet[3])/2)
         else:
-            lp_cx = 0
-            lp_cy = 0
+            cx = 0
+            cy = 0
 
-        if right_pallet is not None:
-            rp_cx = int((right_pallet[0] + right_pallet[2])/2)
-            rp_cy = int((right_pallet[1] + right_pallet[3])/2)
-            # rp_cy = int(right_pallet[1])
-        else:
-            rp_cx = 0
-            rp_cy = 0
+        pallet_depth = depth_map[cy][cx]
 
-        left_pallet_depth = depth_map[lp_cy][lp_cx]
-        right_pallet_depth = depth_map[rp_cy][rp_cx]
-
-        left_boxes_classified = [[] for _ in range(total_layers)]
-        right_boxes_classified = [[] for _ in range(total_layers)]
+        boxes_classified = [[] for _ in range(total_layers)]
 
         thresholds = self.layer_wise_depth_diff[total_layers]
 
-        # for box in left_boxes:
-        #     cx = int((box[0] + box[2])/2)
-        #     cy = int((box[1] + box[3])/2)
-            
-        #     box_depth = depth_map[cy][cx]
-            
-        #     diff = abs(int(left_pallet_depth) - int(box_depth))
-            
-        #     assigned = False
-        #     for i, threshold in enumerate(thresholds):
-        #         if diff < threshold:
-        #             left_boxes_classified[i].append(box)
-        #             assigned = True
-        #             break
-            
-        #     if not assigned:
-        #         left_boxes_classified[-1].append(box)
-        
-        # for box in right_boxes:
-        #     cx = int((box[0] + box[2])/2)
-        #     cy = int((box[1] + box[3])/2)
-            
-        #     box_depth = depth_map[cy][cx]
-
-        #     diff = abs(int(right_pallet_depth) - int(box_depth))
-            
-        #     assigned = False
-        #     for i, threshold in enumerate(thresholds):
-        #         if diff < threshold:
-        #             right_boxes_classified[i].append(box)
-        #             assigned = True
-        #             break
-            
-        #     if not assigned:
-        #         right_boxes_classified[-1].append(box)
-
-
-        left_front_min_depth = float('inf')            
-        for box in left_boxes:
+        front_min_depth = float('inf')            
+        for box in boxes:
             cx = int((box[0] + box[2])/2)
             cy = int((box[1] + box[3])/2)
             
             box_depth = depth_map[cy][cx]
             
-            diff = int(left_pallet_depth) - int(box_depth)
+            diff = int(pallet_depth) - int(box_depth)
 
             if diff < self.front_layer_threshold:
-                left_front_min_depth = min(left_front_min_depth, box_depth)
+                front_min_depth = min(front_min_depth, box_depth)
 
-        right_front_min_depth = float('inf')            
-        for box in right_boxes:
-            cx = int((box[0] + box[2])/2)
-            cy = int((box[1] + box[3])/2)
+        for box in boxes:
+            bcx = int((box[0] + box[2])/2)
+            bcy = int((box[1] + box[3])/2)
             
-            box_depth = depth_map[cy][cx]
+            box_depth = depth_map[bcy][bcx]
             
-            diff = int(right_pallet_depth) - int(box_depth)
-
-            if diff < self.front_layer_threshold:
-                right_front_min_depth = min(right_front_min_depth, box_depth)
-        
-        for box in left_boxes:
-            cx = int((box[0] + box[2])/2)
-            cy = int((box[1] + box[3])/2)
+            diff = int(front_min_depth) - int(box_depth)
             
-            box_depth = depth_map[cy][cx]
-            
-            diff = int(left_front_min_depth) - int(box_depth)
-
             assigned = False
             for i, threshold in enumerate(thresholds):
                 if diff < threshold:
-                    left_boxes_classified[i].append(box)
+                    boxes_classified[i].append(box)
                     assigned = True
                     break
             
             if not assigned:
-                left_boxes_classified[-1].append(box)
+                boxes_classified[-1].append(box)
 
-        for box in right_boxes:
-            cx = int((box[0] + box[2])/2)
-            cy = int((box[1] + box[3])/2)
-            
-            box_depth = depth_map[cy][cx]
-            
-            diff = int(right_front_min_depth) - int(box_depth)
-
-            assigned = False
-            for i, threshold in enumerate(thresholds):
-                if diff < threshold:
-                    right_boxes_classified[i].append(box)
-                    assigned = True
-                    break
-            
-            if not assigned:
-                right_boxes_classified[-1].append(box)
-
-        return left_boxes_classified, right_boxes_classified
+        return boxes_classified
 
     def detect(self, image_path, boundaries, left_pallet, right_pallet):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries

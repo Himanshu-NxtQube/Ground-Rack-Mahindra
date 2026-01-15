@@ -4,37 +4,28 @@ class BoxCounter():
     def __init__(self):
         self.pallet_len_inches = 46
         self.pallet_width_inches = 40
-        # self.back_layers = pd.read_csv("data/part_numbers.csv", index_col="part number")
-        self.strcture_data = pd.read_csv("data/interlock.csv", index_col="part number")
 
-    def count_boxes_per_layer(self, box_stacks, part_number, avg_box_length, avg_box_width, stacking_type, gap_in_inches):
+    def count_boxes_per_layer(self, box_stacks, boxes_per_layer, layers,  avg_box_length, avg_box_width, stacking_type, gap_in_inches):
         if stacking_type == "interlock":
-            if part_number and part_number not in self.strcture_data.index:
+            if not boxes_per_layer:
                 pallet_area = self.pallet_len_inches * (self.pallet_width_inches - gap_in_inches)
                 box_area = avg_box_length * avg_box_width
                 
                 boxes_per_layer = pallet_area // box_area
                 return boxes_per_layer
-            else:
-                # return self.strcture_data["horizontal"][part_number] + self.strcture_data["vertical"][part_number]
-                return self.strcture_data.loc[part_number, 'boxes_per_layer']
+            
+            return boxes_per_layer
         elif stacking_type == "normal":
             avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
             avg_stack = round(avg_stack)
             
-            try:
-                return avg_stack * int(self.strcture_data.loc[part_number, 'layers'])
-            except (KeyError, ValueError, TypeError):
-                print(f"{part_number} is not found in part_number.csv")
-                return None
+            if layers:
+                return avg_stack * layers
+            else:
+                return 0
     
-    def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, part_number, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
+    def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, layers, layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
         if stacking_type == "normal":
-            try:
-                layers = int(self.strcture_data.loc[part_number, 'layers'])
-            except (KeyError, ValueError, TypeError):
-                print(f"{part_number} is not found in part_number.csv")
-                layers = 0
             if pallet_status == "partial":
                 if not boxes_per_layer:
                     return 0
@@ -42,20 +33,17 @@ class BoxCounter():
                 extra_boxes = 0
                 front_boxes = len(box_stacks[0])*layers if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else 0
                 for i, box_layer in enumerate(box_list[1:]):
-                    extra_boxes += len(box_layer)*(layers - i)
+                    extra_boxes += len(box_layer)*(layers - i - 1)
                 return front_boxes + extra_boxes
+            else:
+                return 0
 
         elif stacking_type == "interlock":
             if pallet_status == "partial":
                 if not boxes_per_layer:
                     return 0
                 
-                if part_number and part_number not in self.strcture_data.index:
-                    print(f"Part Number {part_number} not Found in CSV")
-                    return 0
-                else:
-                    layering = self.strcture_data.loc[part_number, 'layering']
-                    layering = layering.split("/")
+                layering = layering.split("/")
 
                 front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
 
@@ -86,7 +74,6 @@ class BoxCounter():
     def get_box_stack(self, boxes):
         if not boxes:
             return []
-        boxes_per_stack_sum = 0
         sorted_boxes = sorted(boxes, key=lambda x: (x[1]+x[3])/2)
         box_stacks = []
         last_y = None
