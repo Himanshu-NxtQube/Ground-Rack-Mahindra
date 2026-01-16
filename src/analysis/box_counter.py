@@ -1,5 +1,3 @@
-import pandas as pd
-
 class BoxCounter():
     def __init__(self):
         self.pallet_len_inches = 46
@@ -52,18 +50,48 @@ class BoxCounter():
 
                 total_extra_boxes = boxes_per_layer
 
+                overlapping_H = 0
+                overlapping_V = 0
+
+                previous_overlapping_H = 0
+                previous_overlapping_V = 0
+
                 for layer, box_layers in enumerate(partial_stack_boxes):
-                    H, V = map(int, layering[layer].split('.'))
+                    H, V = layering[layer].split('.')
+                    
+                    if H[-1] != '*':
+                        H = int(H)
+                    else:
+                        H = int(H[:-1])
+                        overlapping_H += 1
+
+                    if V[-1] != '*':
+                        V = int(V)
+                    else:
+                        V = int(V[:-1])
+                        overlapping_V += 1
                     
                     partial_box_layer_found = False
                     if box_layers:
                         for box in box_layers:
                             if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
-                                H -= 1
+                                if previous_overlapping_H <= 0: 
+                                    H -= 1
+                                else:
+                                    previous_overlapping_H -= 1
                             else:
-                                V -= 1
+                                if previous_overlapping_V <= 0:
+                                    V -= 1
+                                else:
+                                    previous_overlapping_V -= 1
                         partial_box_layer_found = True
                     total_extra_boxes -= (H + V)
+
+                    previous_overlapping_H = overlapping_H
+                    previous_overlapping_V = overlapping_V
+                    overlapping_H = 0
+                    overlapping_V = 0
+
                     if partial_box_layer_found:
                         break
                 
