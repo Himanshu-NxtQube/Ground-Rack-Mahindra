@@ -7,20 +7,20 @@ class CSVUtils:
     def get_boxes_per_layer(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'boxes per layer']
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             print("Boxes per layer not found for part number: ", part_number)
             return None
 
     def get_layering(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'layering']
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             print("Layering not found for part number: ", part_number)
             return None
 
     def get_layers(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'layers']
-        except KeyError:
+        except (KeyError, TypeError, ValueError):
             print("Layers not found for part number: ", part_number)
             return None        
