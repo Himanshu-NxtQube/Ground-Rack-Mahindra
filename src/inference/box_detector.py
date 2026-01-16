@@ -7,7 +7,7 @@ class BoxDetector:
         self.model = YOLO("models/New Ground Box model.pt", verbose=False)
 
         self.layer_wise_depth_diff = {  2: [30], 
-                                        3: [20, 40], 
+                                        3: [30, 70], 
                                         4: [15, 30, 45] }
 
         self.front_layer_threshold = 30
@@ -30,7 +30,7 @@ class BoxDetector:
 
         thresholds = self.layer_wise_depth_diff[total_layers]
 
-        front_min_depth = float('inf')            
+        front_min_depth = pallet_depth            
         for box in boxes:
             cx = int((box[0] + box[2])/2)
             cy = int((box[1] + box[3])/2)

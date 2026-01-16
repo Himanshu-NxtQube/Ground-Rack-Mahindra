@@ -123,8 +123,8 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     status_bbox=left_status_bbox)
     right_stack_count = stack_validator.count_stack(front_right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
 
-    left_layering = csv_utils.get_layering(left_box_stacks)
-    right_layering = csv_utils.get_layering(right_box_stacks)
+    left_layering = csv_utils.get_layering(left_part_number)
+    right_layering = csv_utils.get_layering(right_part_number)
 
     extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_structure['stacking_type'], 
                                                         avg_box_length=left_structure['avg_box_length'], 
