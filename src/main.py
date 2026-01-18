@@ -123,15 +123,18 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     status_bbox=left_status_bbox)
     right_stack_count = stack_validator.count_stack(front_right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
 
-    left_layering = csv_utils.get_layering(left_part_number)
-    right_layering = csv_utils.get_layering(right_part_number)
+    left_odd_layering = csv_utils.get_odd_layering(left_part_number)
+    left_even_layering = csv_utils.get_even_layering(left_part_number)
+    right_odd_layering = csv_utils.get_odd_layering(right_part_number)
+    right_even_layering = csv_utils.get_even_layering(right_part_number)
 
     extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_structure['stacking_type'], 
                                                         avg_box_length=left_structure['avg_box_length'], 
                                                         avg_box_width=left_structure['avg_box_width'], 
                                                         avg_box_height=left_structure['avg_box_height'], 
                                                         layers=left_layers, 
-                                                        layering=left_layering,
+                                                        odd_layering=left_odd_layering,
+                                                        even_layering=left_even_layering,
                                                         box_list=left_boxes, 
                                                         stack_count=left_stack_count, 
                                                         pallet_status=left_pallet_status, 
@@ -142,7 +145,8 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                         avg_box_width=right_structure['avg_box_width'], 
                                                         avg_box_height=right_structure['avg_box_height'], 
                                                         layers=right_layers, 
-                                                        layering=right_layering,
+                                                        odd_layering=right_odd_layering,
+                                                        even_layering=right_even_layering,
                                                         box_list=right_boxes, 
                                                         stack_count=right_stack_count, 
                                                         pallet_status=right_pallet_status, 

@@ -11,11 +11,18 @@ class CSVUtils:
             print("Boxes per layer not found for part number: ", part_number)
             return None
 
-    def get_layering(self, part_number):
+    def get_odd_layering(self, part_number):
         try:
-            return self.structure_data.loc[part_number, 'layering']
+            return self.structure_data.loc[part_number, 'odd layering']
         except (KeyError, TypeError, ValueError):
-            print("Layering not found for part number: ", part_number)
+            print("Odd layering not found for part number: ", part_number)
+            return None
+
+    def get_even_layering(self, part_number):
+        try:
+            return self.structure_data.loc[part_number, 'even layering']
+        except (KeyError, TypeError, ValueError):
+            print("Even layering not found for part number: ", part_number)
             return None
 
     def get_layers(self, part_number):

@@ -22,7 +22,7 @@ class BoxCounter():
             else:
                 return 0
     
-    def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, layers, layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
+    def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, layers, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
         if stacking_type == "normal":
             if pallet_status == "partial":
                 if not boxes_per_layer:
@@ -42,10 +42,9 @@ class BoxCounter():
                     return 0
                 
                 if (stack_count+1)%2 == 1:
-                    layering = layering.split("/")
+                    layering = odd_layering.split("/")
                 else:
-                    print("Reversed Layering for even stack count")
-                    layering = reversed(layering.split("/"))
+                    layering = even_layering.split("/")
 
                 front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
 
@@ -110,7 +109,7 @@ class BoxCounter():
         box_stacks = []
         last_y = None
         for box in sorted_boxes:
-            center_y = (box[1] + box[3])/2 
+            center_y = (box[1] + box[3])/2
             if not last_y:
                 last_y = center_y
                 box_stacks.append([box])
