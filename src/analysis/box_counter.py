@@ -41,7 +41,11 @@ class BoxCounter():
                 if not boxes_per_layer:
                     return 0
                 
-                layering = layering.split("/")
+                if (stack_count+1)%2 == 1:
+                    layering = layering.split("/")
+                else:
+                    print("Reversed Layering for even stack count")
+                    layering = reversed(layering.split("/"))
 
                 front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
 
