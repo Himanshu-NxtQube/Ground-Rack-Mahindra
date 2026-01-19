@@ -13,6 +13,10 @@ class BoxDetector:
         self.front_layer_threshold = 30
 
     def classify_boxes(self, boxes, pallet, total_layers, depth_map):
+        if not total_layers:
+            print("No layers found! Defaulting to 2 layers.")
+            total_layers = 2
+            
         boxes_classified = [[] for _ in range(total_layers)]
         if pallet is not None:
             cx = int((pallet[0] + pallet[2])/2)
@@ -21,9 +25,6 @@ class BoxDetector:
             print("Pallet not detected!")
             return boxes_classified
 
-        if not total_layers:
-            print("No layers found! Defaulting to 2 layers.")
-            total_layers = 2
 
         pallet_depth = depth_map[cy][cx]
 
