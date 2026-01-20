@@ -1,4 +1,5 @@
 import cv2
+import pandas as pd
 
 class StackValidator:
     def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
@@ -13,7 +14,7 @@ class StackValidator:
             return len(box_stacks)
         elif pallet_status == "partial":
             if stacking_type == "interlock":
-                if (not odd_layering and not even_layering):
+                if ((not odd_layering or pd.isna(odd_layering)) and (not even_layering or pd.isna(even_layering))):
                     return 0
                 
                 top_stack = box_stacks[0]
