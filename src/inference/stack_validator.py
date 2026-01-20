@@ -52,6 +52,9 @@ class StackValidator:
             top_stack_pix_len = box_stacks[0][-1][2] - box_stacks[0][0][0]
             #               bottom_stack rightmost box's x2 - bottom_stack leftmost box's x1
             bottom_stack_pix_len = box_stacks[-1][-1][2] - box_stacks[-1][0][0]
+
+            print("Top stack pix len:", top_stack_pix_len)
+            print("Bottom stack pix len:", bottom_stack_pix_len)
             if abs(top_stack_pix_len - bottom_stack_pix_len) < 20:
                 return max(count11, count12, count21, count22) + 1
         

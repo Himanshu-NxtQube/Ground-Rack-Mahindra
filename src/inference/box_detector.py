@@ -73,7 +73,7 @@ class BoxDetector:
         right_boxes = []
 
         for conf, box in zip(boxes.conf, boxes.xyxy):
-            if conf < 0.8:
+            if conf < 0.6:
                 continue
             
             cx = (box[0] + box[2])/2
