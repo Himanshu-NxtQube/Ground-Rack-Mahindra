@@ -25,12 +25,12 @@ class StackValidator:
                 boxes = int(H[0]) + int(V[0])
                 if boxes == len(top_stack):
                     return len(box_stacks)
-                return len(top_stack) - 1
+                return len(box_stacks) - 1
             elif stacking_type == "normal":
                 boxes = boxes_per_layer//layers
                 if boxes == len(box_stacks[0]):
                     return len(box_stacks)
-                return len(box_stacks[0]) - 1
+                return len(box_stacks) - 1
         
         return 0
         # if not box_list:
