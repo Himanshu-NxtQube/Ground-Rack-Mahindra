@@ -1,30 +1,36 @@
 import cv2
 
 class StackValidator:
-    def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox, odd_layering, even_layering):
+    def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
         if pallet_status is None:
             return 0
-        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status, odd_layering, even_layering)
+        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status, odd_layering, even_layering, stacking_type, boxes_per_layer, layers)
         # stack_count2 = self.count_stacks_using_pallet_status_bbox(pallet, box_list, status_bbox, pallet_status)
         return stack_count1
         
-    def count_stacks_using_boxes(self, box_list, box_stacks, pallet_status, odd_layering, even_layering):
+    def count_stacks_using_boxes(self, box_list, box_stacks, pallet_status, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
         if pallet_status == "full":
             return len(box_stacks)
         elif pallet_status == "partial":
-            if (not odd_layering and not even_layering):
-                return 0
-            
-            top_stack = box_stacks[0]
-            if len(box_stacks)%2 == 0:
-                front_layer = even_layering.split('/')[0]
-            else:
-                front_layer = odd_layering.split('/')[0]
-            H, V = front_layer.split('.')
-            boxes = int(H[0]) + int(V[0])
-            if boxes == len(top_stack):
-                return len(box_stacks)
-            return len(top_stack) - 1
+            if stacking_type == "interlock":
+                if (not odd_layering and not even_layering):
+                    return 0
+                
+                top_stack = box_stacks[0]
+                if len(box_stacks)%2 == 0:
+                    front_layer = even_layering.split('/')[0]
+                else:
+                    front_layer = odd_layering.split('/')[0]
+                H, V = front_layer.split('.')
+                boxes = int(H[0]) + int(V[0])
+                if boxes == len(top_stack):
+                    return len(box_stacks)
+                return len(top_stack) - 1
+            elif stacking_type == "normal":
+                boxes = boxes_per_layer//layers
+                if boxes == len(box_stacks[0]):
+                    return len(box_stacks)
+                return len(box_stacks[0]) - 1
         
         return 0
         # if not box_list:

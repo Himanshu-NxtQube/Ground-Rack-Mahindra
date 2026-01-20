@@ -127,7 +127,10 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     pallet=left_pallet, 
                                                     status_bbox=left_status_bbox,
                                                     odd_layering=left_odd_layering,
-                                                    even_layering=left_even_layering)
+                                                    even_layering=left_even_layering,
+                                                    stacking_type=left_structure['stacking_type'],
+                                                    boxes_per_layer=left_boxes_per_layer,
+                                                    layers=left_layers)
     
     right_stack_count = stack_validator.count_stack(box_list=front_right_boxes, 
                                                     box_stacks=right_box_stacks, 
@@ -135,7 +138,10 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     pallet=right_pallet, 
                                                     status_bbox=right_status_bbox,
                                                     odd_layering=right_odd_layering,
-                                                    even_layering=right_even_layering)
+                                                    even_layering=right_even_layering,
+                                                    stacking_type=right_structure['stacking_type'],
+                                                    boxes_per_layer=right_boxes_per_layer,
+                                                    layers=right_layers)
 
     extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_structure['stacking_type'], 
                                                         avg_box_length=left_structure['avg_box_length'], 
