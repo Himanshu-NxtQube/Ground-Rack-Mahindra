@@ -32,20 +32,28 @@ class StackValidator:
         count22 = sum(1 for b in box_list if b[0] <= lx <= b[2] and b[1] >= cy)
 
 
-        top_stack_len = len(box_stacks[0])
-        # print("Top stack Len:", top_stack_len)
-        if len(box_stacks) > 1:
-            stack_sum = 0
-            for stack in box_stacks[1:]:
-                stack_sum += len(stack)
-            avg_boxes_per_stack = round(stack_sum/(len(box_stacks) - 1))
-            # print("Avg boxes Per stack:", avg_boxes_per_stack)
-        elif len(box_stacks) == 1:
-            avg_boxes_per_stack = len(box_stacks[0])
-        else:
-            avg_boxes_per_stack = None
-        if avg_boxes_per_stack and top_stack_len == avg_boxes_per_stack:
-            return max(count11, count12, count21, count22) + 1
+        # top_stack_len = len(box_stacks[0])
+        # # print("Top stack Len:", top_stack_len)
+        # if len(box_stacks) > 1:
+        #     stack_sum = 0
+        #     for stack in box_stacks[1:]:
+        #         stack_sum += len(stack)
+        #     avg_boxes_per_stack = round(stack_sum/(len(box_stacks) - 1))
+        #     # print("Avg boxes Per stack:", avg_boxes_per_stack)
+        # elif len(box_stacks) == 1:
+        #     avg_boxes_per_stack = len(box_stacks[0])
+        # else:
+        #     avg_boxes_per_stack = None
+        # if avg_boxes_per_stack and top_stack_len == avg_boxes_per_stack:
+        #     return max(count11, count12, count21, count22) + 1
+
+        if len(box_stacks) > 0:
+            #               top_stack rightmost box's x2 - top_stack leftmost box's x1
+            top_stack_pix_len = box_stacks[0][-1][2] - box_stacks[0][0][0]
+            #               bottom_stack rightmost box's x2 - bottom_stack leftmost box's x1
+            bottom_stack_pix_len = box_stacks[-1][-1][2] - box_stacks[-1][0][0]
+            if abs(top_stack_pix_len - bottom_stack_pix_len) < 20:
+                return max(count11, count12, count21, count22) + 1
         
         # for b in box_list:
         #     print(b['x1'], b['x2'])

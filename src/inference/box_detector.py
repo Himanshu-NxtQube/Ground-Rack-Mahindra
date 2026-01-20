@@ -16,7 +16,7 @@ class BoxDetector:
         if not total_layers:
             print("No layers found! Defaulting to 2 layers.")
             total_layers = 2
-            
+
         boxes_classified = [[] for _ in range(total_layers)]
         if pallet is not None:
             cx = int((pallet[0] + pallet[2])/2)
