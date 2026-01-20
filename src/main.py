@@ -116,17 +116,26 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                                   stacking_type=right_structure['stacking_type'], 
                                                                   gap_in_inches=right_gap_in_inches)
 
-    left_stack_count = stack_validator.count_stack(box_list=front_left_boxes, 
-                                                    box_stacks=left_box_stacks, 
-                                                    pallet_status=left_pallet_status, 
-                                                    pallet=left_pallet, 
-                                                    status_bbox=left_status_bbox)
-    right_stack_count = stack_validator.count_stack(front_right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
-
     left_odd_layering = csv_utils.get_odd_layering(left_part_number)
     left_even_layering = csv_utils.get_even_layering(left_part_number)
     right_odd_layering = csv_utils.get_odd_layering(right_part_number)
     right_even_layering = csv_utils.get_even_layering(right_part_number)
+
+    left_stack_count = stack_validator.count_stack(box_list=front_left_boxes, 
+                                                    box_stacks=left_box_stacks, 
+                                                    pallet_status=left_pallet_status, 
+                                                    pallet=left_pallet, 
+                                                    status_bbox=left_status_bbox,
+                                                    odd_layering=left_odd_layering,
+                                                    even_layering=left_even_layering)
+    
+    right_stack_count = stack_validator.count_stack(box_list=front_right_boxes, 
+                                                    box_stacks=right_box_stacks, 
+                                                    pallet_status=right_pallet_status, 
+                                                    pallet=right_pallet, 
+                                                    status_bbox=right_status_bbox,
+                                                    odd_layering=right_odd_layering,
+                                                    even_layering=right_even_layering)
 
     extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_structure['stacking_type'], 
                                                         avg_box_length=left_structure['avg_box_length'], 
