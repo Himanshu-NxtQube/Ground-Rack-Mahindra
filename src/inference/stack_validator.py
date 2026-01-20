@@ -12,6 +12,9 @@ class StackValidator:
         if pallet_status == "full":
             return len(box_stacks)
         elif pallet_status == "partial":
+            if (not odd_layering and not even_layering):
+                return 0
+                
             top_stack = box_stacks[0]
             if len(box_stacks)%2 == 0:
                 front_layer = even_layering.split('/')[0]
