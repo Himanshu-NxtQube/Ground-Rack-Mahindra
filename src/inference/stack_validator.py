@@ -14,7 +14,7 @@ class StackValidator:
         elif pallet_status == "partial":
             if (not odd_layering and not even_layering):
                 return 0
-                
+            
             top_stack = box_stacks[0]
             if len(box_stacks)%2 == 0:
                 front_layer = even_layering.split('/')[0]
@@ -23,8 +23,8 @@ class StackValidator:
             H, V = front_layer.split('.')
             boxes = int(H[0]) + int(V[0])
             if boxes == len(top_stack):
-                return len(box_stacks) + 1
-            return len(top_stack)
+                return len(box_stacks)
+            return len(top_stack) - 1
         
         return 0
         # if not box_list:
