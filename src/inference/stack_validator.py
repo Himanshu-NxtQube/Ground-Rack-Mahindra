@@ -4,7 +4,7 @@ class StackValidator:
     def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox, odd_layering, even_layering):
         if pallet_status is None:
             return 0
-        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status)
+        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status, odd_layering, even_layering)
         # stack_count2 = self.count_stacks_using_pallet_status_bbox(pallet, box_list, status_bbox, pallet_status)
         return stack_count1
         
