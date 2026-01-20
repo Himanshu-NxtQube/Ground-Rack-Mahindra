@@ -27,6 +27,8 @@ class StackValidator:
                     return len(box_stacks)
                 return len(box_stacks) - 1
             elif stacking_type == "normal":
+                if not boxes_per_layer or not layers:
+                    return 0
                 boxes = boxes_per_layer//layers
                 if boxes == len(box_stacks[0]):
                     return len(box_stacks)

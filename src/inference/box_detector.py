@@ -6,11 +6,11 @@ class BoxDetector:
     def __init__(self):
         self.model = YOLO("models/Ground Box model.pt", verbose=False)
 
-        self.layer_wise_depth_diff = {  2: [30], 
+        self.layer_wise_depth_diff = {  2: [20], 
                                         3: [30, 70], 
                                         4: [15, 30, 45] }
 
-        self.front_layer_threshold = 30
+        self.front_layer_threshold = 20
 
     def classify_boxes(self, boxes, pallet, total_layers, depth_map):
         if not total_layers:
