@@ -1,3 +1,5 @@
+import pandas as pd 
+
 class BoxCounter():
     def __init__(self):
         self.pallet_len_inches = 46
