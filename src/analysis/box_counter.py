@@ -38,7 +38,7 @@ class BoxCounter():
 
         elif stacking_type == "interlock":
             if pallet_status == "partial":
-                if not boxes_per_layer or (not odd_layering and not even_layering):
+                if not boxes_per_layer or ((not odd_layering or pd.isna(odd_layering)) and (not even_layering or pd.isna(even_layering))):
                     return 0
                 
                 if (stack_count+1)%2 == 1:
