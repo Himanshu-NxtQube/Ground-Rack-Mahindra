@@ -31,3 +31,10 @@ class CSVUtils:
         except (KeyError, TypeError, ValueError):
             print("Layers not found for part number: ", part_number)
             return None        
+
+    def get_stacking_type(self, part_number):
+        try:
+            return self.structure_data.loc[part_number, 'stacking type']
+        except (KeyError, TypeError, ValueError):
+            print("Stacking type not found for part number: ", part_number)
+            return None
