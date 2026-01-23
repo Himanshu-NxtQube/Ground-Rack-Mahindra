@@ -7,8 +7,8 @@ class BoxDetector:
         self.model = YOLO("models/box_ground_180.pt", verbose=False)
 
         self.layer_wise_depth_diff = {  2: [20], 
-                                        3: [30, 70], 
-                                        4: [15, 30, 45] }
+                                        3: [30, 55], 
+                                        4: [30, 50, 70] }
 
         self.front_layer_threshold = 20
 
