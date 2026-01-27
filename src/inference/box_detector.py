@@ -6,18 +6,22 @@ class BoxDetector:
     def __init__(self):
         self.model = YOLO("models/box_ground_180.pt", verbose=False)
 
-        self.layer_wise_depth_diff = {  2: [20], 
-                                        3: [30, 55], 
-                                        4: [30, 50, 70] }
+        # self.layer_wise_depth_diff = {  2: [20], 
+        #                                 3: [20, 55], 
+        #                                 4: [20, 50, 70] }
 
-        self.front_layer_threshold = 20
+        # self.front_layer_threshold = 20
 
-    def classify_boxes(self, boxes, pallet, total_layers, depth_map):
+    def classify_boxes(self, boxes, pallet, total_layers, depth_map, layer_wise_depth_diff):
         if not total_layers:
             print("No layers found! Defaulting to 2 layers.")
             total_layers = 2
 
         boxes_classified = [[] for _ in range(total_layers)]
+        
+        if not layer_wise_depth_diff:
+            return boxes_classified
+
         if pallet is not None:
             cx = int((pallet[0] + pallet[2])/2)
             cy = int((pallet[1] + pallet[3])/2)
@@ -28,7 +32,7 @@ class BoxDetector:
 
         pallet_depth = depth_map[cy][cx]
 
-        thresholds = self.layer_wise_depth_diff[total_layers]
+        thresholds = layer_wise_depth_diff
 
         front_min_depth = pallet_depth            
         for box in boxes:
@@ -39,7 +43,7 @@ class BoxDetector:
             
             diff = int(pallet_depth) - int(box_depth)
 
-            if diff < self.front_layer_threshold:
+            if diff < thresholds[0]:
                 front_min_depth = min(front_min_depth, box_depth)
 
         for box in boxes:

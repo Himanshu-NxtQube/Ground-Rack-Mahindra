@@ -38,3 +38,12 @@ class CSVUtils:
         except (KeyError, TypeError, ValueError):
             print("Stacking type not found for part number: ", part_number)
             return None
+    
+    def get_layer_wise_depth_diff(self, part_number):
+        try:
+            depth_values = self.structure_data.loc[part_number, 'depth values']
+            depth_values = map(int, depth_values.split('/'))
+            return list(depth_values)
+        except (KeyError, TypeError, ValueError):
+            print("Layer wise depth diff not found for part number: ", part_number)
+            return None

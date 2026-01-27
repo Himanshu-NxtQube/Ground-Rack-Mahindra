@@ -54,8 +54,12 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     left_layers = csv_utils.get_layers(left_part_number)
     right_layers = csv_utils.get_layers(right_part_number)
-    left_boxes = box_detector.classify_boxes(left_boxes, left_pallet, left_layers, depth_map)
-    right_boxes = box_detector.classify_boxes(right_boxes, right_pallet, right_layers, depth_map)
+
+    left_layer_wise_depth_diff = csv_utils.get_layer_wise_depth_diff(left_part_number)
+    right_layer_wise_depth_diff = csv_utils.get_layer_wise_depth_diff(right_part_number)
+
+    left_boxes = box_detector.classify_boxes(left_boxes, left_pallet, left_layers, depth_map, left_layer_wise_depth_diff)
+    right_boxes = box_detector.classify_boxes(right_boxes, right_pallet, right_layers, depth_map, right_layer_wise_depth_diff)
 
     front_left_boxes = left_boxes[0]
     front_right_boxes = right_boxes[0]
@@ -214,7 +218,8 @@ def process_dir(dir_name, upload=False):
     if upload:
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
-        
+        if int(image_name[4:8]) != 727:
+            continue
         print("Image:",image_name)
         image_path = os.path.join(images_dir, image_name) 
         process_single_image(image_path, report_id, debug=True, upload=upload)

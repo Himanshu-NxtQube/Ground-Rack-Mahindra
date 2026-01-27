@@ -210,7 +210,7 @@ if __name__ == "__main__":
     # model_path = "./models"
     model = YOLO(model_path)
     image_dir = "images/"
-    test_images = ['DJI_0699.JPG']
+    test_images = ['DJI_0713.JPG']
     for image in os.listdir(image_dir):
         if not test_images or image in test_images:
             image_path = os.path.join(image_dir, image)
