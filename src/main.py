@@ -222,7 +222,12 @@ def process_dir(dir_name, upload=False):
             continue
         print("Image:",image_name)
         image_path = os.path.join(images_dir, image_name) 
-        process_single_image(image_path, report_id, debug=True, upload=upload)
+
+        try:
+            process_single_image(image_path, report_id, debug=True, upload=upload)
+        except Exception as e:
+            print("Error processing image:", image_name)
+            print(e)
 
 if __name__ == "__main__":
     process_dir(images_dir, upload=upload)
