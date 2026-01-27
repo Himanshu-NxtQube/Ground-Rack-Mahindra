@@ -16,13 +16,16 @@ class BoxCounter():
             
             return boxes_per_layer
         elif stacking_type == "normal":
-            avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
-            avg_stack = round(avg_stack)
+            if not boxes_per_layer:
+                avg_stack = sum([len(stack) for stack in box_stacks])/len(box_stacks)
+                avg_stack = round(avg_stack)
+                
+                if layers:
+                    return avg_stack * layers
+                else:
+                    return 0
             
-            if layers:
-                return avg_stack * layers
-            else:
-                return 0
+            return boxes_per_layer
     
     def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, layers, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
         if stacking_type == "normal":
