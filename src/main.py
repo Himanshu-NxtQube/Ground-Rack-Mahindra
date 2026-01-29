@@ -61,6 +61,10 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_boxes = box_detector.classify_boxes(left_boxes, left_pallet, left_layers, depth_map, left_layer_wise_depth_diff)
     right_boxes = box_detector.classify_boxes(right_boxes, right_pallet, right_layers, depth_map, right_layer_wise_depth_diff)
 
+    if debug:
+        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_pallet, depth_map)
+        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_pallet, depth_map)
+
     front_left_boxes = left_boxes[0]
     front_right_boxes = right_boxes[0]
 
@@ -95,9 +99,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_status_bbox = pallet_status_result['left_bbox']
     right_status_bbox = pallet_status_result['right_bbox']
 
-    if debug:
-        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, left_box_dimensions, left_pallet, depth_map)
-        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, right_box_dimensions, right_pallet, depth_map)
     
     left_gap = find_gap(left_pallet, front_left_boxes)
     right_gap = find_gap(right_pallet, front_right_boxes)
@@ -218,7 +219,7 @@ def process_dir(dir_name, upload=False):
     if upload:
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
-        if int(image_name[4:8]) != 727:
+        if int(image_name[4:8]) != 707:
             continue
         print("Image:",image_name)
         image_path = os.path.join(images_dir, image_name) 

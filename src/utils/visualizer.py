@@ -3,7 +3,7 @@ class Visualizer():
     def __init__(self):
         pass
     
-    def visualize_box_dimensions(self, image_path, side, boxes, box_dimensions, pallet, depth_map):
+    def visualize_box_dimensions(self, image_path, side, boxes, pallet, depth_map):
         image = cv2.imread(image_path)
 
         colors = [
