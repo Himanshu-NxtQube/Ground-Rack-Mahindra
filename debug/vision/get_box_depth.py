@@ -1,4 +1,7 @@
 import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
 from src.inference import boundary_detection, depth_estimation, pallet_detector, box_detector
 from src.utils import visualizer
 
