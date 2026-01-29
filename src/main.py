@@ -11,7 +11,7 @@ from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
 from inference.gap_detector import find_gap
 from inference.boundary_detection import BoundaryDetector
-from inference.rack_box_extraction import RackBoxExtractor
+from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
 from inference.infer_func import infer_Q3_Q4
 from utils.csv_utils import CSVUtils
@@ -30,23 +30,32 @@ stack_analyzer = StackingAnalyzer()
 depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
-rack_box_extractor = RackBoxExtractor()
+ocr_parser = OCRParser()
 boundary_detector = BoundaryDetector()
 csv_utils = CSVUtils()
-images_dir = "images/"
-upload = False
+IMAGES_DIR = "images/"
+UPLOAD = False
 
 def process_single_image(image_path, report_id, debug=False, upload=False):
     image_name = os.path.basename(image_path)
+
+    # These are independent tasks --------------------------
     boundaries = boundary_detector.get_boundaries(image_path)
+
     annotations = ocr_client.get_annotations(image_path)
-    rack_dict = rack_box_extractor.extract_rack_info(annotations, boundaries, cv2.imread(image_path).shape)
-    rack_dict = infer_Q3_Q4(rack_dict)
 
     depth_map = depth_estimator.get_depth_map(image_path)
-    
+
+    # ------------------------------------------------------
+
+    # Detections -------------------------------------------
     left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
+
     left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
+    # ------------------------------------------------------
+
+    rack_dict = ocr_parser.get_rack_ids(annotations, boundaries, cv2.imread(image_path).shape)
+    rack_dict = infer_Q3_Q4(rack_dict)
 
     # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
     left_part_number = f"{image_name.split('.')[0]}_L"
@@ -229,4 +238,4 @@ def process_dir(dir_name, upload=False):
             print(e)
 
 if __name__ == "__main__":
-    process_dir(images_dir, upload=upload)
+    process_dir(IMAGES_DIR, upload=UPLOAD)
