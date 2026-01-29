@@ -219,8 +219,6 @@ def process_dir(dir_name, upload=False):
     if upload:
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
-        if int(image_name[4:8]) != 707:
-            continue
         print("Image:",image_name)
         image_path = os.path.join(images_dir, image_name) 
 
