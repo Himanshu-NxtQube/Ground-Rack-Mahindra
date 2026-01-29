@@ -114,14 +114,14 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                                 layers=left_layers,
                                                                 avg_box_length=left_structure['avg_box_length'], 
                                                                 avg_box_width=left_structure['avg_box_width'], 
-                                                                stacking_type=left_stacking_type, 
+                                                                stacking_type=left_structure['stacking_type'], 
                                                                 gap_in_inches=left_gap_in_inches)
     right_box_count_per_layer = box_counter.count_boxes_per_layer(box_stacks=right_box_stacks, 
                                                                   boxes_per_layer=right_boxes_per_layer,
                                                                   layers=right_layers,
                                                                   avg_box_length=right_structure['avg_box_length'], 
                                                                   avg_box_width=right_structure['avg_box_width'], 
-                                                                  stacking_type=right_stacking_type, 
+                                                                  stacking_type=right_structure['stacking_type'], 
                                                                   gap_in_inches=right_gap_in_inches)
 
     left_odd_layering = csv_utils.get_odd_layering(left_part_number)
@@ -136,7 +136,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     status_bbox=left_status_bbox,
                                                     odd_layering=left_odd_layering,
                                                     even_layering=left_even_layering,
-                                                    stacking_type=left_stacking_type,
+                                                    stacking_type=left_structure['stacking_type'],
                                                     boxes_per_layer=left_boxes_per_layer,
                                                     layers=left_layers)
     
@@ -147,11 +147,11 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     status_bbox=right_status_bbox,
                                                     odd_layering=right_odd_layering,
                                                     even_layering=right_even_layering,
-                                                    stacking_type=right_stacking_type,
+                                                    stacking_type=right_structure['stacking_type'],
                                                     boxes_per_layer=right_boxes_per_layer,
                                                     layers=right_layers)
 
-    extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_stacking_type, 
+    extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_structure['stacking_type'], 
                                                         avg_box_length=left_structure['avg_box_length'], 
                                                         avg_box_width=left_structure['avg_box_width'], 
                                                         avg_box_height=left_structure['avg_box_height'], 
@@ -163,7 +163,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                         pallet_status=left_pallet_status, 
                                                         boxes_per_layer=left_box_count_per_layer, 
                                                         box_stacks=left_box_stacks)
-    extra_right_box_count = box_counter.count_extra_boxes(stacking_type=right_stacking_type, 
+    extra_right_box_count = box_counter.count_extra_boxes(stacking_type=right_structure['stacking_type'], 
                                                         avg_box_length=right_structure['avg_box_length'], 
                                                         avg_box_width=right_structure['avg_box_width'], 
                                                         avg_box_height=right_structure['avg_box_height'], 
@@ -196,7 +196,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     print(f"{'':<20} | {'Left':<15} | {'Right':<15}")
     print(f"{'-'*20} | {'-'*15} | {'-'*15}")
-    print(f"{'Stacking Type':<20} | {format_value(left_stacking_type, 15)} | {format_value(right_stacking_type, 15)}")
+    print(f"{'Stacking Type':<20} | {format_value(left_structure['stacking_type'], 15)} | {format_value(right_structure['stacking_type'], 15)}")
     print(f"{'Avg Box Length':<20} | {format_value(left_structure['avg_box_length'], 15, 2)} | {format_value(right_structure['avg_box_length'], 15, 2)}")
     print(f"{'Avg Box Width':<20} | {format_value(left_structure['avg_box_width'], 15, 2)} | {format_value(right_structure['avg_box_width'], 15, 2)}")
     print(f"{'Pallet Status':<20} | {format_value(left_pallet_status, 15)} | {format_value(right_pallet_status, 15)}")
