@@ -2,6 +2,7 @@ class Converter():
     def __init__(self):
         self.pallet_len_inches = 46
         self.pallet_width_inches = 40
+
     def get_box_dimensions(self, boxes, pallet):
         if pallet is None:
             return []
