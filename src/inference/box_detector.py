@@ -66,7 +66,12 @@ class BoxDetector:
 
         return boxes_classified
 
-    def detect(self, image_path, boundaries, left_pallet, right_pallet):
+    def detect(self, image_path):
+        image = cv2.imread(image_path)
+        predictions = self.model.predict(image, verbose=False)
+        return predictions[0].boxes
+
+    def detect1(self, image_path, boundaries, left_pallet, right_pallet):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
         image = cv2.imread(image_path)
         h, w, _ = image.shape

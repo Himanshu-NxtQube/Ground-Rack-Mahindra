@@ -205,11 +205,11 @@ def visualize_boundaries(model, image_path, confidence_threshold=0.5, merge_thre
 if __name__ == "__main__":
     save_output_path = "output/visualized/"
     os.makedirs(save_output_path, exist_ok=True)
-    model_path = "./models/Ground Box model.pt"
+    model_path = "./models/190groundbox.pt"
     # model_path = "models/mahidra_ground_pallet.pt"
     # model_path = "./models"
     model = YOLO(model_path)
-    image_dir = "images/"
+    image_dir = "other/Interlock Boxes (Multiple types)/"
     test_images = ['DJI_0713.JPG']
     for image in os.listdir(image_dir):
         if not test_images or image in test_images:

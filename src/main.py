@@ -14,6 +14,9 @@ from inference.boundary_detection import BoundaryDetector
 from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
 from inference.infer_func import infer_Q3_Q4
+
+# filter and split pallet
+# filter and map boxes with pallet
 from utils.csv_utils import CSVUtils
 from utils.visualizer import Visualizer
 from utils.rds_operator import RDSOperator
@@ -36,23 +39,23 @@ csv_utils = CSVUtils()
 IMAGES_DIR = "images/"
 UPLOAD = False
 
+def initialize(image_path):
+    # These are independent tasks
+    boundaries = boundary_detector.get_boundaries(image_path)
+    annotations = ocr_client.get_annotations(image_path)
+    depth_map = depth_estimator.get_depth_map(image_path)
+    pallets = pallet_detector.detect(image_path)
+    boxes = box_detector.detect(image_path)
+    return boundaries, annotations, depth_map, pallets, boxes
+
 def process_single_image(image_path, report_id, debug=False, upload=False):
     image_name = os.path.basename(image_path)
 
-    # These are independent tasks --------------------------
-    boundaries = boundary_detector.get_boundaries(image_path)
+    boundaries, annotations, depth_map, pallets, boxes = initialize(image_path)
 
-    annotations = ocr_client.get_annotations(image_path)
-
-    depth_map = depth_estimator.get_depth_map(image_path)
-
-    # ------------------------------------------------------
-
-    # Detections -------------------------------------------
-    left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
-
-    left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
-    # ------------------------------------------------------
+    # filter and split pallet
+    left_pallet, right_pallet = pallet_detector.detect1(image_path, boundaries)
+    # filter and map boxes with pallet
 
     rack_dict = ocr_parser.get_rack_ids(annotations, boundaries, cv2.imread(image_path).shape)
     rack_dict = infer_Q3_Q4(rack_dict)
@@ -61,11 +64,25 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_part_number = f"{image_name.split('.')[0]}_L"
     right_part_number = f"{image_name.split('.')[0]}_R"
 
+    # CSV Utils(we can merge it) --------------------------------------------
     left_layers = csv_utils.get_layers(left_part_number)
     right_layers = csv_utils.get_layers(right_part_number)
 
+    left_stacking_type = csv_utils.get_stacking_type(left_part_number)
+    right_stacking_type = csv_utils.get_stacking_type(right_part_number)
+
+    left_boxes_per_layer = csv_utils.get_boxes_per_layer(left_part_number)
+    right_boxes_per_layer = csv_utils.get_boxes_per_layer(right_part_number)
+
     left_layer_wise_depth_diff = csv_utils.get_layer_wise_depth_diff(left_part_number)
     right_layer_wise_depth_diff = csv_utils.get_layer_wise_depth_diff(right_part_number)
+
+    left_odd_layering = csv_utils.get_odd_layering(left_part_number)
+    left_even_layering = csv_utils.get_even_layering(left_part_number)
+
+    right_odd_layering = csv_utils.get_odd_layering(right_part_number)
+    right_even_layering = csv_utils.get_even_layering(right_part_number)
+    # ------------------------------------------------------
 
     left_boxes = box_detector.classify_boxes(left_boxes, left_pallet, left_layers, depth_map, left_layer_wise_depth_diff)
     right_boxes = box_detector.classify_boxes(right_boxes, right_pallet, right_layers, depth_map, right_layer_wise_depth_diff)
@@ -83,17 +100,10 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_structure = stack_analyzer.analyze(left_box_dimensions)
     right_structure = stack_analyzer.analyze(right_box_dimensions)
 
-    left_stacking_type = csv_utils.get_stacking_type(left_part_number)
-    right_stacking_type = csv_utils.get_stacking_type(right_part_number)
 
     left_box_stacks = box_counter.get_box_stack(front_left_boxes)
     right_box_stacks = box_counter.get_box_stack(front_right_boxes)
 
-    # print("Box Stacks:")
-    # for left_box_stack, right_box_stack in zip(left_box_stacks, right_box_stacks):
-    #     print(f"{left_box_stack} | {right_box_stack}") 
-    
-    # print(json.dumps(right_box_stacks, indent=4))
     print("Box Stacks:")
     for i in range(max(len(left_box_stacks), len(right_box_stacks))):
         left_box_stack_len = len(left_box_stacks[i]) if i < len(left_box_stacks) else 0
@@ -115,8 +125,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_gap_in_inches = converter.convert_gap_in_inches(left_gap)
     right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
 
-    left_boxes_per_layer = csv_utils.get_boxes_per_layer(left_part_number)
-    right_boxes_per_layer = csv_utils.get_boxes_per_layer(right_part_number)
 
     left_box_count_per_layer = box_counter.count_boxes_per_layer(box_stacks=left_box_stacks, 
                                                                 boxes_per_layer=left_boxes_per_layer,
@@ -133,10 +141,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                                   stacking_type=right_stacking_type, 
                                                                   gap_in_inches=right_gap_in_inches)
 
-    left_odd_layering = csv_utils.get_odd_layering(left_part_number)
-    left_even_layering = csv_utils.get_even_layering(left_part_number)
-    right_odd_layering = csv_utils.get_odd_layering(right_part_number)
-    right_even_layering = csv_utils.get_even_layering(right_part_number)
 
     left_stack_count = stack_validator.count_stack(box_list=front_left_boxes, 
                                                     box_stacks=left_box_stacks, 
@@ -229,7 +233,7 @@ def process_dir(dir_name, upload=False):
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
         print("Image:",image_name)
-        image_path = os.path.join(images_dir, image_name) 
+        image_path = os.path.join(dir_name, image_name) 
 
         try:
             process_single_image(image_path, report_id, debug=True, upload=upload)

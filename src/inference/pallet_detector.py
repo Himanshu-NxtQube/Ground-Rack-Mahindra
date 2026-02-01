@@ -5,7 +5,25 @@ class PalletDetector:
     def __init__(self):
         self.model = YOLO("models/new_mahindra_gpallet_12_12_25.pt", verbose=False)
 
-    def detect(self, image_path, boundaries):
+    def detect(self, image_path):
+        image = cv2.imread(image_path)
+        predictions = self.model.predict(image, verbose=False)
+        return predictions[0].boxes
+    
+    def filter_pallets(self, pallet_boxes, boundaries):
+        left_x, right_x, top_y, bottom_y = boundaries
+        filtered = []
+
+        for box in pallet_boxes:
+            cx = (box[0] + box[2]) / 2
+            cy = (box[1] + box[3]) / 2
+
+            if left_x < cx < right_x and top_y < cy < bottom_y:
+                filtered.append(box)
+
+        return filtered
+
+    def detect1(self, image_path, boundaries):
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
         image = cv2.imread(image_path)
         h, w, _ = image.shape
