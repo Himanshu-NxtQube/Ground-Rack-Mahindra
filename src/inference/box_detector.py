@@ -4,7 +4,7 @@ import cv2
 
 class BoxDetector:
     def __init__(self):
-        self.model = YOLO("models/box_ground_180.pt", verbose=False)
+        self.model = YOLO("models/190groundbox.pt", verbose=False)
 
         # self.layer_wise_depth_diff = {  2: [20], 
         #                                 3: [20, 55], 
