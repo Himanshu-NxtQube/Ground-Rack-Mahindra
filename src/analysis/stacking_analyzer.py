@@ -22,11 +22,10 @@ class StackingAnalyzer:
         if not box_dimensions:
             return {"avg_box_length": 0, "avg_box_width": 0, "avg_box_height": 0}
 
-        if stacking_type == "interlock":
-            # separate horizontals and verticals
-            horizontals = [h for h, _ in box_dimensions]
-            verticals = [v for _, v in box_dimensions]
+        horizontals = [h for h, _ in box_dimensions]
+        verticals = [v for _, v in box_dimensions]
 
+        if stacking_type == "interlock":
             horizontals_sorted = sorted(horizontals)
 
             # find split in horizontal lengths
@@ -45,6 +44,10 @@ class StackingAnalyzer:
             avg_len = sum(horizontals_sorted) / len(horizontals_sorted)
             avg_height = sum(verticals) / len(verticals)
 
+            return {"avg_box_length": avg_len, "avg_box_width": None, "avg_box_height": avg_height}
+        else:
+            avg_len = sum(horizontals) / len(horizontals)
+            avg_height = sum(verticals) / len(verticals)
             return {"avg_box_length": avg_len, "avg_box_width": None, "avg_box_height": avg_height}
 
         # box_vertical_len_avg, box_horizontal_len_avg = self.get_avg_dimensions(box_dimensions)
