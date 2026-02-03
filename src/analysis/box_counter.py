@@ -90,13 +90,15 @@ class BoxCounter():
                         detected_H = 0
                         detected_V = 0
                         for box in box_layers:
-                            if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < \
+                            if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) > \
                                 abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
                                 H -= 1
                                 detected_H += 1
+                                print(f"Horizontal box detected {detected_H}")
                             else:
                                 V -= 1
                                 detected_V += 1
+                                print(f"Vertical box detected {detected_V}")
                         
                         if detected_H == 0 and detected_V == 1 and overlapping_V > 0:
                             # h0v1_overlap_case = True
@@ -119,11 +121,13 @@ class BoxCounter():
                                 next_layer_detected_H = 0
                                 next_layer_detected_V = 0
                                 for box in next_layer:
-                                    if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < \
+                                    if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) > \
                                         abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
                                         next_layer_detected_H += 1
+                                        print(f"Next layer horizontal box detected {next_layer_detected_H}")
                                     else:
                                         next_layer_detected_V += 1
+                                        print(f"Next layer vertical box detected {next_layer_detected_V}")
 
                                 # if (next_layer_H + next_layer_V) - (next_layer_detected_H + next_layer_detected_V) != 1:
                                 total_extra_boxes -= (next_layer_H - next_layer_detected_H)
