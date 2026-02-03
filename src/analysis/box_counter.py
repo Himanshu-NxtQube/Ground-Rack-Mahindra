@@ -63,14 +63,13 @@ class BoxCounter():
                 total_extra_boxes = boxes_per_layer
 
                 # overlapping_H = 0
-                # overlapping_V = 0
+                overlapping_V = 0
 
                 # previous_overlapping_H = 0
                 # previous_overlapping_V = 0
 
 
                 for layer, box_layers in enumerate(partial_stack_boxes):
-                    h0v1_overlap_case = False
                     H, V = layering[layer].split('.')
                     
                     if H[-1] != '*':
@@ -83,23 +82,55 @@ class BoxCounter():
                         V = int(V)
                     else:
                         V = int(V[:-1])
-                        # overlapping_V += 1
+                        overlapping_V += 1
                     
                     partial_box_layer_found = False
                     if box_layers:
+                        partial_box_layer_found = True
                         detected_H = 0
                         detected_V = 0
                         for box in box_layers:
-                            if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
+                            if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < \
+                                abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
                                 H -= 1
                                 detected_H += 1
                             else:
                                 V -= 1
                                 detected_V += 1
                         
-                        if detected_H == 0 and detected_V == 1:
-                            h0v1_overlap_case = True
-                        partial_box_layer_found = True
+                        if detected_H == 0 and detected_V == 1 and overlapping_V > 0:
+                            # h0v1_overlap_case = True
+                            if layer+1 < len(partial_stack_boxes):
+                                next_layer = partial_stack_boxes[layer+1]
+
+                                next_layer_H, next_layer_V = layering[layer+1].split('.')
+                                if next_layer_H[-1] != '*':
+                                    next_layer_H = int(next_layer_H)
+                                else:
+                                    next_layer_H = int(next_layer_H[:-1])
+                                    # overlapping_H += 1
+
+                                if next_layer_V[-1] != '*':
+                                    next_layer_V = int(next_layer_V)
+                                else:
+                                    next_layer_V = int(next_layer_V[:-1])
+                                    overlapping_V += 1
+
+                                next_layer_detected_H = 0
+                                next_layer_detected_V = 0
+                                for box in next_layer:
+                                    if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) < \
+                                        abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
+                                        next_layer_detected_H += 1
+                                    else:
+                                        next_layer_detected_V += 1
+
+                                # if (next_layer_H + next_layer_V) - (next_layer_detected_H + next_layer_detected_V) != 1:
+                                total_extra_boxes -= (next_layer_H - next_layer_detected_H)
+                                print(f"Removing back horizontal visible boxes {(next_layer_H - next_layer_detected_H)}")
+                                    
+                                
+                                
                     total_extra_boxes -= H
                     total_extra_boxes -= V
                     print("Removed:", (H+V))
@@ -109,7 +140,7 @@ class BoxCounter():
                     # overlapping_H = 0
                     # overlapping_V = 0
 
-                    if partial_box_layer_found and not h0v1_overlap_case:
+                    if partial_box_layer_found:
                         break
                 
                 return total_extra_boxes
