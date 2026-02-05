@@ -96,9 +96,12 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     left_box_dimensions = converter.get_box_dimensions(front_left_boxes, left_pallet)
     right_box_dimensions = converter.get_box_dimensions(front_right_boxes, right_pallet)
+    
+    left_stacking_type = csv_utils.get_stacking_type(left_part_number)
+    right_stacking_type = csv_utils.get_stacking_type(right_part_number)
 
-    left_structure = stack_analyzer.analyze(left_box_dimensions)
-    right_structure = stack_analyzer.analyze(right_box_dimensions)
+    left_structure = stack_analyzer.analyze(left_box_dimensions, left_stacking_type)
+    right_structure = stack_analyzer.analyze(right_box_dimensions, right_stacking_type)
 
 
     left_box_stacks = box_counter.get_box_stack(front_left_boxes)
