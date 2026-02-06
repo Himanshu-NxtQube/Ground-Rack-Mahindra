@@ -1,5 +1,6 @@
 import regex
 import cv2
+from src.inference.infer_func import infer_Q3_Q4
 
 class OCRParser:
     def __init__(self):
@@ -133,7 +134,7 @@ class OCRParser:
         ) if Q3_max_value is not None or Q4_max_value is not None else None
 
 
-        return rack_dict
+        return infer_Q3_Q4(rack_dict)
 
     def compute_bbox(self, vertices):
         area = 0

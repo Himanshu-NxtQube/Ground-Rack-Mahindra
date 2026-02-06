@@ -2,14 +2,10 @@ import cv2
 import pandas as pd
 
 class StackValidator:
-    def count_stack(self, box_list, box_stacks, pallet_status, pallet, status_bbox, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
+    def count_stack(self, box_stacks, pallet_status, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
         if pallet_status is None:
             return 0
-        stack_count1 = self.count_stacks_using_boxes(box_list, box_stacks, pallet_status, odd_layering, even_layering, stacking_type, boxes_per_layer, layers)
-        # stack_count2 = self.count_stacks_using_pallet_status_bbox(pallet, box_list, status_bbox, pallet_status)
-        return stack_count1
-        
-    def count_stacks_using_boxes(self, box_list, box_stacks, pallet_status, odd_layering, even_layering, stacking_type, boxes_per_layer, layers):
+
         if pallet_status == "full":
             return len(box_stacks)
         elif pallet_status == "partial":
@@ -36,6 +32,7 @@ class StackValidator:
                 return len(box_stacks) - 1
         
         return 0
+        
         # if not box_list:
         #     return 0
         
@@ -96,16 +93,16 @@ class StackValidator:
         #     return max(count11, count12, count21, count22)
         # return max(count11, count12, count21, count22) + 1
 
-    def count_stacks_using_pallet_status_bbox(self, pallet, boxes, status_bbox, pallet_status):
-        if not boxes:
-            return 0
-        status_bbox_height = status_bbox[3] - status_bbox[1]
-        status_bbox_height -= (pallet[3] - pallet[1]) if pallet is not None else 0
-        avg_box_height_sum = 0
-        for box in boxes:
-            avg_box_height_sum += (box[3] - box[1])
-        avg_box_height = avg_box_height_sum / len(boxes)
-        stack_count = status_bbox_height // avg_box_height
-        if pallet_status == "partial":
-            return stack_count - 1
-        return stack_count
+    # def count_stacks_using_pallet_status_bbox(self, pallet, boxes, status_bbox, pallet_status):
+    #     if not boxes:
+    #         return 0
+    #     status_bbox_height = status_bbox[3] - status_bbox[1]
+    #     status_bbox_height -= (pallet[3] - pallet[1]) if pallet is not None else 0
+    #     avg_box_height_sum = 0
+    #     for box in boxes:
+    #         avg_box_height_sum += (box[3] - box[1])
+    #     avg_box_height = avg_box_height_sum / len(boxes)
+    #     stack_count = status_bbox_height // avg_box_height
+    #     if pallet_status == "partial":
+    #         return stack_count - 1
+    #     return stack_count

@@ -11,6 +11,21 @@ class BoxDetector:
         #                                 4: [20, 50, 70] }
 
         # self.front_layer_threshold = 20
+    
+    def map_boxes(self, boxes, left_pallet, right_pallet):
+        left_boxes = []
+        right_boxes = []
+        
+        for box in boxes:
+            cx = int((box[0] + box[2])/2)
+            cy = int((box[1] + box[3])/2)
+            
+            if left_pallet is not None and left_pallet[0] < cx < left_pallet[2]:
+                left_boxes.append(box)
+            elif right_pallet is not None and right_pallet[0] < cx < right_pallet[2]:
+                right_boxes.append(box)
+        
+        return left_boxes, right_boxes
 
     def classify_boxes(self, boxes, pallet, total_layers, depth_map, layer_wise_depth_diff):
         if not total_layers:
