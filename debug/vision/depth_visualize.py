@@ -11,18 +11,7 @@ from src.inference.depth_estimation import DepthEstimator
 # Initialize with the correct model name
 depth_estimator = DepthEstimator("depth_anything_v2")
 
-image_path = "images/DJI_0019.JPG"
-# Ensure the image path is correct relative to where the script is run or absolute
-if not os.path.exists(image_path):
-    # Try finding it relative to src if run from there
-    possible_path = os.path.join("..", "images", "DJI_0017.JPG")
-    if os.path.exists(possible_path):
-        image_path = possible_path
-    else:
-        # Try finding it from utils if run from there
-        possible_path = os.path.join("..", "..", "images", "DJI_0021.JPG")
-        if os.path.exists(possible_path):
-            image_path = possible_path
+image_path = "images/DJI_0707.JPG"
 
 depth_map = depth_estimator.get_depth_map(image_path)
 image = cv2.imread(image_path)

@@ -1,6 +1,5 @@
 import os
 import cv2
-import json
 from analysis.stacking_analyzer import StackingAnalyzer
 from analysis.box_counter import BoxCounter 
 from analysis.converter import Converter
@@ -9,11 +8,13 @@ from inference.pallet_detector import PalletDetector
 from inference.depth_estimation import DepthEstimator
 from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
-from inference.gap_detector import find_gap
 from inference.boundary_detection import BoundaryDetector
-from inference.rack_box_extraction import RackBoxExtractor
+from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
-from inference.infer_func import infer_Q3_Q4
+
+# filter and split pallet
+# filter and map boxes with pallet
+from utils.csv_utils import CSVUtils
 from utils.visualizer import Visualizer
 from utils.rds_operator import RDSOperator
 from utils.s3_operator import upload_images
@@ -26,83 +27,131 @@ rds_operator = RDSOperator()
 ocr_client = OCRClient()
 visualizer = Visualizer()
 stack_analyzer = StackingAnalyzer()
-depth_estimator = DepthEstimator("apple_depth_pro")
+depth_estimator = DepthEstimator("depth_anything_v2")
 pallet_status_estimator = PalletStatus()
 stack_validator = StackValidator()
-rack_box_extractor = RackBoxExtractor()
+ocr_parser = OCRParser()
 boundary_detector = BoundaryDetector()
-images_dir = "image/"
-upload = False
+csv_utils = CSVUtils()
+IMAGES_DIR = "images/"
+UPLOAD = False
+
+def initialize(image_path):
+    # These are independent tasks
+    boundaries = boundary_detector.get_boundaries(image_path)
+    annotations = ocr_client.get_annotations(image_path)
+    depth_map = depth_estimator.get_depth_map(image_path)
+    pallets = pallet_detector.detect(image_path)
+    boxes = box_detector.detect(image_path)
+    return boundaries, annotations, depth_map, pallets, boxes
 
 def process_single_image(image_path, report_id, debug=False, upload=False):
     image_name = os.path.basename(image_path)
-    boundaries = boundary_detector.get_boundaries(image_path)
-    annotations = ocr_client.get_annotations(image_path)
-    rack_dict = rack_box_extractor.extract_rack_info(annotations, boundaries, cv2.imread(image_path).shape)
-    rack_dict = infer_Q3_Q4(rack_dict)
+    image_shape = cv2.imread(image_path).shape
 
-    depth_map = depth_estimator.get_depth_map(image_path)
+    # get initial predictions
+    boundaries, annotations, depth_map, pallets, boxes = initialize(image_path)
+
+    # filter and split pallet
+    left_pallet, right_pallet = pallet_detector.filter_and_split_pallets(pallets, boundaries, image_shape[1])
     
-    left_pallet, right_pallet = pallet_detector.detect(image_path, boundaries)
-    left_boxes, right_boxes = box_detector.detect(image_path, boundaries, left_pallet, right_pallet)
-    left_boxes, right_boxes, back_left_boxes, back_right_boxes, fartest_left_boxes, fartest_right_boxes = box_detector.filter_front_boxes(left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
+    # map boxes with pallet
+    left_boxes, right_boxes = box_detector.map_boxes(boxes, left_pallet, right_pallet)
 
-    left_box_dimensions = converter.get_box_dimensions(left_boxes, left_pallet)
-    right_box_dimensions = converter.get_box_dimensions(right_boxes, right_pallet)
+    # OCR Operations -------------------------------------------------------
+    # rack_dict = ocr_parser.get_rack_ids(annotations, boundaries, image_shape)
 
-    left_structure = stack_analyzer.analyze(left_box_dimensions)
-    right_structure = stack_analyzer.analyze(right_box_dimensions)
+    ## TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
+    left_part_number = f"{image_name.split('.')[0]}_L"
+    right_part_number = f"{image_name.split('.')[0]}_R"
+    # ----------------------------------------------------------------------
 
-    left_box_stacks = box_counter.get_box_stack(left_boxes)
-    right_box_stacks = box_counter.get_box_stack(right_boxes)
+    # CSV Operations -------------------------------------------------------
+    left_part_info = csv_utils.get_all_part_info(left_part_number)
+    right_part_info = csv_utils.get_all_part_info(right_part_number)
+    # -----------------------------------------------------------------------
 
-    # print("Box Stacks:")
-    # for left_box_stack, right_box_stack in zip(left_box_stacks, right_box_stacks):
-    #     print(f"{left_box_stack} | {right_box_stack}") 
-    
-    # print(json.dumps(right_box_stacks, indent=4))
-    print("Box Stacks:")
-    for i in range(max(len(left_box_stacks), len(right_box_stacks))):
-        left_box_stack_len = len(left_box_stacks[i]) if i < len(left_box_stacks) else 0
-        right_box_stack_len = len(right_box_stacks[i]) if i < len(right_box_stacks) else 0
-        print('📦'*left_box_stack_len + '\t\t' + '📦'*right_box_stack_len)
+    left_boxes = box_detector.classify_boxes(boxes=left_boxes, 
+                                            pallet=left_pallet, 
+                                            total_layers=left_part_info["layers"], 
+                                            depth_map=depth_map, 
+                                            layer_wise_depth_diff=left_part_info["layer_wise_depth_diff"])
+
+    right_boxes = box_detector.classify_boxes(boxes=right_boxes, 
+                                            pallet=right_pallet, 
+                                            total_layers=right_part_info["layers"], 
+                                            depth_map=depth_map, 
+                                            layer_wise_depth_diff=right_part_info["layer_wise_depth_diff"])
+
+    if debug:
+        visualizer.visualize(image_path, left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
+
+    front_left_boxes = left_boxes[0]
+    front_right_boxes = right_boxes[0]
+
+    left_box_dimensions = converter.get_box_dimensions(front_left_boxes, left_pallet)
+    right_box_dimensions = converter.get_box_dimensions(front_right_boxes, right_pallet)
+
+    left_structure = stack_analyzer.analyze(left_box_dimensions, left_part_info["stacking_type"])
+    right_structure = stack_analyzer.analyze(right_box_dimensions, right_part_info["stacking_type"])
+
+    left_box_stacks = box_counter.get_box_stack(front_left_boxes)
+    right_box_stacks = box_counter.get_box_stack(front_right_boxes)
 
     pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 
     left_pallet_status = pallet_status_result['left_status']
     right_pallet_status = pallet_status_result['right_status']
 
-    left_status_bbox = pallet_status_result['left_bbox']
-    right_status_bbox = pallet_status_result['right_bbox']
-
-    if debug:
-        visualizer.visualize_box_dimensions(image_path, "left", left_boxes, back_left_boxes, fartest_left_boxes, left_box_dimensions, left_pallet, depth_map)
-        visualizer.visualize_box_dimensions(image_path, "right", right_boxes, back_right_boxes, fartest_right_boxes, right_box_dimensions, right_pallet, depth_map)
+    left_stack_count = stack_validator.count_stack(box_stacks=left_box_stacks, 
+                                                    pallet_status=left_pallet_status, 
+                                                    odd_layering=left_part_info["odd_layering"],
+                                                    even_layering=left_part_info["even_layering"],
+                                                    stacking_type=left_part_info["stacking_type"],
+                                                    boxes_per_layer=left_part_info["boxes_per_layer"],
+                                                    layers=left_part_info["layers"])
     
-    left_gap = find_gap(left_pallet, left_boxes)
-    right_gap = find_gap(right_pallet, right_boxes)
+    right_stack_count = stack_validator.count_stack(box_stacks=right_box_stacks, 
+                                                    pallet_status=right_pallet_status, 
+                                                    odd_layering=right_part_info["odd_layering"],
+                                                    even_layering=right_part_info["even_layering"],
+                                                    stacking_type=right_part_info["stacking_type"],
+                                                    boxes_per_layer=right_part_info["boxes_per_layer"],
+                                                    layers=right_part_info["layers"])
 
-    left_gap_in_inches = converter.convert_gap_in_inches(left_gap)
-    right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
+    extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_part_info["stacking_type"], 
+                                                        avg_box_length=left_structure['avg_box_length'], 
+                                                        avg_box_width=left_structure['avg_box_width'], 
+                                                        avg_box_height=left_structure['avg_box_height'], 
+                                                        layers=left_part_info["layers"], 
+                                                        odd_layering=left_part_info["odd_layering"],
+                                                        even_layering=left_part_info["even_layering"],
+                                                        box_list=left_boxes, 
+                                                        stack_count=left_stack_count, 
+                                                        pallet_status=left_pallet_status, 
+                                                        boxes_per_layer=left_part_info["boxes_per_layer"], 
+                                                        box_stacks=left_box_stacks)
 
-    # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    left_box_count_per_layer = box_counter.count_boxes_per_layer(left_box_stacks, f"{image_name.split('.')[0]}_L", left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['stacking_type'], left_gap_in_inches)
-    right_box_count_per_layer = box_counter.count_boxes_per_layer(right_box_stacks, f"{image_name.split('.')[0]}_R", right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['stacking_type'], right_gap_in_inches)
+    extra_right_box_count = box_counter.count_extra_boxes(stacking_type=right_part_info["stacking_type"], 
+                                                        avg_box_length=right_structure['avg_box_length'], 
+                                                        avg_box_width=right_structure['avg_box_width'], 
+                                                        avg_box_height=right_structure['avg_box_height'], 
+                                                        layers=right_part_info["layers"], 
+                                                        odd_layering=right_part_info["odd_layering"],
+                                                        even_layering=right_part_info["even_layering"],
+                                                        box_list=right_boxes, 
+                                                        stack_count=right_stack_count, 
+                                                        pallet_status=right_pallet_status, 
+                                                        boxes_per_layer=right_part_info["boxes_per_layer"], 
+                                                        box_stacks=right_box_stacks)
 
-    left_stack_count = stack_validator.count_stack(left_boxes, left_box_stacks, left_pallet_status, left_pallet, left_status_bbox)
-    right_stack_count = stack_validator.count_stack(right_boxes, right_box_stacks, right_pallet_status, right_pallet, right_status_bbox)
-
-    # TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
-    extra_left_box_count = box_counter.count_extra_boxes(left_structure['stacking_type'], left_structure['avg_box_length'], left_structure['avg_box_width'], left_structure['avg_box_height'], f"{image_name.split('.')[0]}_L", left_boxes, back_left_boxes, fartest_left_boxes, left_stack_count, left_pallet_status, left_box_count_per_layer, left_box_stacks)
-    extra_right_box_count = box_counter.count_extra_boxes(right_structure['stacking_type'], right_structure['avg_box_length'], right_structure['avg_box_width'], right_structure['avg_box_height'], f"{image_name.split('.')[0]}_R", right_boxes, back_right_boxes, fartest_right_boxes, right_stack_count, right_pallet_status, right_box_count_per_layer, right_box_stacks)
-
-    if left_box_count_per_layer is not None and left_stack_count is not None:
-        total_left_boxes = (left_box_count_per_layer * left_stack_count) + extra_left_box_count
+    if left_part_info["boxes_per_layer"] is not None and left_stack_count is not None:
+        total_left_boxes = (left_part_info["boxes_per_layer"] * left_stack_count) + extra_left_box_count
     else:
         total_left_boxes = None
     
-    if right_box_count_per_layer is not None and right_stack_count is not None:
-        total_right_boxes = (right_box_count_per_layer * right_stack_count) + extra_right_box_count
+    if right_part_info["boxes_per_layer"] is not None and right_stack_count is not None:
+        total_right_boxes = (right_part_info["boxes_per_layer"] * right_stack_count) + extra_right_box_count
     else:
         total_right_boxes = None
 
@@ -116,12 +165,12 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     print(f"{'':<20} | {'Left':<15} | {'Right':<15}")
     print(f"{'-'*20} | {'-'*15} | {'-'*15}")
-    print(f"{'Stacking Type':<20} | {format_value(left_structure['stacking_type'], 15)} | {format_value(right_structure['stacking_type'], 15)}")
+    print(f"{'Stacking Type':<20} | {format_value(left_part_info['stacking_type'], 15)} | {format_value(right_part_info['stacking_type'], 15)}")
     print(f"{'Avg Box Length':<20} | {format_value(left_structure['avg_box_length'], 15, 2)} | {format_value(right_structure['avg_box_length'], 15, 2)}")
     print(f"{'Avg Box Width':<20} | {format_value(left_structure['avg_box_width'], 15, 2)} | {format_value(right_structure['avg_box_width'], 15, 2)}")
     print(f"{'Pallet Status':<20} | {format_value(left_pallet_status, 15)} | {format_value(right_pallet_status, 15)}")
-    print(f"{'Gap':<20} | {format_value(left_gap_in_inches, 15)} | {format_value(right_gap_in_inches, 15)}")
-    print(f"{'Box Count Per Layer':<20} | {format_value(left_box_count_per_layer, 15)} | {format_value(right_box_count_per_layer, 15)}")
+    # print(f"{'Gap':<20} | {format_value(left_gap_in_inches, 15)} | {format_value(right_gap_in_inches, 15)}")
+    print(f"{'Box Count Per Layer':<20} | {format_value(left_part_info['boxes_per_layer'], 15)} | {format_value(right_part_info['boxes_per_layer'], 15)}")
     print(f"{'Stack Count':<20} | {format_value(left_stack_count, 15)} | {format_value(right_stack_count, 15)}")
     print(f"{'Extra Boxes':<20} | {format_value(extra_left_box_count, 15)} | {format_value(extra_right_box_count, 15)}")
     print(f"{'Total Boxes':<20} | {format_value(total_left_boxes, 15)} | {format_value(total_right_boxes, 15)}")
@@ -134,17 +183,25 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
         rds_operator.insert_record(image_name, report_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", "", key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
         rds_operator.insert_record(image_name, report_id, rack_dict['Q4'], total_right_boxes, right_pallet_status, "NA", "", key_id, exclusion="" if right_pallet_status != "N/A" else "empty rack")
 
+    # print("Box Stacks:")
+    # for i in range(max(len(left_box_stacks), len(right_box_stacks))):
+    #     left_box_stack_len = len(left_box_stacks[i]) if i < len(left_box_stacks) else 0
+    #     right_box_stack_len = len(right_box_stacks[i]) if i < len(right_box_stacks) else 0
+    #     print('📦'*left_box_stack_len + '\t\t' + '📦'*right_box_stack_len)
+
 def process_dir(dir_name, upload=False):
     report_id = 0
     if upload:
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
-        if int(image_name[4:8]) != 725:
-            continue
-        
         print("Image:",image_name)
-        image_path = os.path.join(images_dir, image_name) 
-        process_single_image(image_path, report_id, debug=True, upload=upload)
+        image_path = os.path.join(dir_name, image_name) 
+
+        try:
+            process_single_image(image_path, report_id, debug=True, upload=upload)
+        except Exception as e:
+            print("Error processing image:", image_name)
+            print(e)
 
 if __name__ == "__main__":
-    process_dir(images_dir, upload=upload)
+    process_dir(IMAGES_DIR, upload=UPLOAD)
