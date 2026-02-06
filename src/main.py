@@ -1,6 +1,5 @@
 import os
 import cv2
-import json
 from analysis.stacking_analyzer import StackingAnalyzer
 from analysis.box_counter import BoxCounter 
 from analysis.converter import Converter
@@ -9,11 +8,9 @@ from inference.pallet_detector import PalletDetector
 from inference.depth_estimation import DepthEstimator
 from inference.stack_validator import StackValidator
 from inference.pallet_status import PalletStatus
-from inference.gap_detector import find_gap
 from inference.boundary_detection import BoundaryDetector
 from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
-from inference.infer_func import infer_Q3_Q4
 
 # filter and split pallet
 # filter and map boxes with pallet
@@ -69,27 +66,9 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     right_part_number = f"{image_name.split('.')[0]}_R"
     # ----------------------------------------------------------------------
 
-    # CSV Utils(we can merge it) --------------------------------------------
+    # CSV Operations -------------------------------------------------------
     left_part_info = csv_utils.get_all_part_info(left_part_number)
     right_part_info = csv_utils.get_all_part_info(right_part_number)
-
-    # left_layers = left_part_info["layers"]
-    # right_layers = right_part_info["layers"]
-
-    # left_stacking_type = left_part_info["stacking_type"]
-    # right_stacking_type = right_part_info["stacking_type"]
-
-    # left_boxes_per_layer = left_part_info["boxes_per_layer"]
-    # right_boxes_per_layer = right_part_info["boxes_per_layer"]
-
-    # left_layer_wise_depth_diff = left_part_info["layer_wise_depth_diff"]
-    # right_layer_wise_depth_diff = right_part_info["layer_wise_depth_diff"]
-
-    # left_odd_layering = left_part_info["odd_layering"]
-    # right_odd_layering = right_part_info["odd_layering"]
-
-    # left_even_layering = left_part_info["even_layering"]
-    # right_even_layering = right_part_info["even_layering"]
     # -----------------------------------------------------------------------
 
     left_boxes = box_detector.classify_boxes(boxes=left_boxes, 
@@ -124,29 +103,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_pallet_status = pallet_status_result['left_status']
     right_pallet_status = pallet_status_result['right_status']
 
-    # left_gap = find_gap(left_pallet, front_left_boxes)
-    # right_gap = find_gap(right_pallet, front_right_boxes)
-
-    # left_gap_in_inches = converter.convert_gap_in_inches(left_gap)
-    # right_gap_in_inches = converter.convert_gap_in_inches(right_gap)
-
-
-    # left_box_count_per_layer = box_counter.count_boxes_per_layer(box_stacks=left_box_stacks, 
-    #                                                             boxes_per_layer=left_boxes_per_layer,
-    #                                                             layers=left_layers,
-    #                                                             avg_box_length=left_structure['avg_box_length'], 
-    #                                                             avg_box_width=left_structure['avg_box_width'], 
-    #                                                             stacking_type=left_stacking_type, 
-    #                                                             gap_in_inches=left_gap_in_inches)
-    # right_box_count_per_layer = box_counter.count_boxes_per_layer(box_stacks=right_box_stacks, 
-    #                                                               boxes_per_layer=right_boxes_per_layer,
-    #                                                               layers=right_layers,
-    #                                                               avg_box_length=right_structure['avg_box_length'], 
-    #                                                               avg_box_width=right_structure['avg_box_width'], 
-    #                                                               stacking_type=right_stacking_type, 
-    #                                                               gap_in_inches=right_gap_in_inches)
-
-
     left_stack_count = stack_validator.count_stack(box_stacks=left_box_stacks, 
                                                     pallet_status=left_pallet_status, 
                                                     odd_layering=left_part_info["odd_layering"],
@@ -175,7 +131,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                         pallet_status=left_pallet_status, 
                                                         boxes_per_layer=left_part_info["boxes_per_layer"], 
                                                         box_stacks=left_box_stacks)
-                                                        
+
     extra_right_box_count = box_counter.count_extra_boxes(stacking_type=right_part_info["stacking_type"], 
                                                         avg_box_length=right_structure['avg_box_length'], 
                                                         avg_box_width=right_structure['avg_box_width'], 
