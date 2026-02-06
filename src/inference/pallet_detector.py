@@ -4,7 +4,8 @@ import cv2
 class PalletDetector:
     def __init__(self):
         self.model = YOLO("models/new_mahindra_gpallet_12_12_25.pt", verbose=False)
-
+        self.conf_threshold = 0.6
+    
     def filter_and_split_pallets(self, pallets, boundaries, w):
         """
         pallets: list of pallets
@@ -26,7 +27,10 @@ class PalletDetector:
         left_x, right_x, top_y, bottom_y = boundaries
         filtered = []
 
-        for box in pallets:
+        for conf, box in zip(pallets.conf, pallets.xyxy):
+            if conf < self.conf_threshold:
+                continue
+            
             cx = (box[0] + box[2]) / 2
             cy = (box[1] + box[3]) / 2
 

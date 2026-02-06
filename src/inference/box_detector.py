@@ -6,17 +6,16 @@ class BoxDetector:
     def __init__(self):
         self.model = YOLO("models/190groundbox.pt", verbose=False)
 
-        # self.layer_wise_depth_diff = {  2: [20], 
-        #                                 3: [20, 55], 
-        #                                 4: [20, 50, 70] }
-
-        # self.front_layer_threshold = 20
+        self.conf_threshold = 0.6
     
     def map_boxes(self, boxes, left_pallet, right_pallet):
         left_boxes = []
         right_boxes = []
         
-        for box in boxes:
+        for conf, box in zip(boxes.conf, boxes.xyxy):
+            if conf < self.conf_threshold:
+                continue
+            
             cx = int((box[0] + box[2])/2)
             cy = int((box[1] + box[3])/2)
             

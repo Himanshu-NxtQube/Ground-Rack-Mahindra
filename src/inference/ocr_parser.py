@@ -1,6 +1,6 @@
 import regex
 import cv2
-from src.inference.infer_func import infer_Q3_Q4
+from inference.infer_func import infer_Q3_Q4
 
 class OCRParser:
     def __init__(self):
