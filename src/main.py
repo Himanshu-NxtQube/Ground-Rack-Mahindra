@@ -11,13 +11,12 @@ from inference.pallet_status import PalletStatus
 from inference.boundary_detection import BoundaryDetector
 from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
-
-# filter and split pallet
-# filter and map boxes with pallet
 from utils.csv_utils import CSVUtils
 from utils.visualizer import Visualizer
 from utils.rds_operator import RDSOperator
 from utils.s3_operator import upload_images
+
+cv2.setLogLevel(2) 
 
 box_detector = BoxDetector()
 box_counter = BoxCounter()
