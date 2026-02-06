@@ -6,6 +6,7 @@ class BoxDetector:
     def __init__(self):
         self.model = YOLO("models/190groundbox.pt", verbose=False)
         self.conf_threshold = 0.6
+        self.back_box_threshold = 90
     
     def map_boxes(self, boxes, left_pallet, right_pallet):
         left_boxes = []
@@ -69,6 +70,10 @@ class BoxDetector:
             box_depth = depth_map[bcy][bcx]
             
             diff = int(front_min_depth) - int(box_depth)
+
+            # to eliminate back boxes
+            if pallet_depth - box_depth >= self.back_box_threshold:
+                continue
             
             assigned = False
             for i, threshold in enumerate(thresholds):
