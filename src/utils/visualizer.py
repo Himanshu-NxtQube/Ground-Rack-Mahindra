@@ -31,14 +31,14 @@ class Visualizer():
         if left_pallet is not None:
             pcx = (left_pallet[0] + left_pallet[2])/2
             pcy = (left_pallet[1] + left_pallet[3])/2
-            cv2.putText(image, f"{depth_map[int(pcy)][int(pcx)]}", (int(pcx), int(pcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, colors[i], 3)
-            cv2.rectangle(image, (int(left_pallet[0]), int(left_pallet[1])), (int(left_pallet[2]), int(left_pallet[3])), colors[i], 2)
+            cv2.putText(image, f"{depth_map[int(pcy)][int(pcx)]}", (int(pcx), int(pcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, colors[0], 3)
+            cv2.rectangle(image, (int(left_pallet[0]), int(left_pallet[1])), (int(left_pallet[2]), int(left_pallet[3])), colors[0], 2)
 
         if right_pallet is not None:
             pcx = (right_pallet[0] + right_pallet[2])/2
             pcy = (right_pallet[1] + right_pallet[3])/2
-            cv2.putText(image, f"{depth_map[int(pcy)][int(pcx)]}", (int(pcx), int(pcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, colors[i], 3)
-            cv2.rectangle(image, (int(right_pallet[0]), int(right_pallet[1])), (int(right_pallet[2]), int(right_pallet[3])), colors[i], 2)
+            cv2.putText(image, f"{depth_map[int(pcy)][int(pcx)]}", (int(pcx), int(pcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, colors[0], 3)
+            cv2.rectangle(image, (int(right_pallet[0]), int(right_pallet[1])), (int(right_pallet[2]), int(right_pallet[3])), colors[0], 2)
 
         cv2.imwrite("output/visualized/" + image_path.split("/")[-1].split(".")[0] + "_visualized.jpg", image)
     
