@@ -27,11 +27,11 @@ class BoxCounter():
             
     #         return boxes_per_layer
     
-    def count_extra_boxes(self, stacking_type, avg_box_length, avg_box_width, avg_box_height, layers, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
+    def count_extra_boxes(self, stacking_type, ratio, layers, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
         if stacking_type == "normal":
             return self.count_extra_boxes_in_normal(pallet_status, box_stacks, layers, stack_count, box_list)
         elif stacking_type == "interlock":
-            return self.count_extra_boxes_in_interlock(pallet_status, boxes_per_layer, odd_layering, even_layering, stack_count, box_stacks, box_list, avg_box_height, avg_box_length, avg_box_width)
+            return self.count_extra_boxes_in_interlock(pallet_status, boxes_per_layer, odd_layering, even_layering, stack_count, box_stacks, box_list, ratio)
         return 0
 
     def count_extra_boxes_in_normal(self, pallet_status, box_stacks, layers, stack_count, box_list):
@@ -44,7 +44,7 @@ class BoxCounter():
         else:
             return 0
 
-    def count_extra_boxes_in_interlock(self, pallet_status, boxes_per_layer, odd_layering, even_layering, stack_count, box_stacks, box_list, avg_box_height, avg_box_length, avg_box_width):
+    def count_extra_boxes_in_interlock(self, pallet_status, boxes_per_layer, odd_layering, even_layering, stack_count, box_stacks, box_list, ratio):
         if pallet_status == "partial":
             if not boxes_per_layer or ((not odd_layering or pd.isna(odd_layering)) and (not even_layering or pd.isna(even_layering))):
                 return 0
@@ -93,8 +93,8 @@ class BoxCounter():
                     detected_H = 0
                     detected_V = 0
                     for box in box_layers:
-                        if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) > \
-                            abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
+                        len_by_height = ((box[2] - box[0]) / (box[3] - box[1]))
+                        if abs(len_by_height - ratio[0]) < abs(len_by_height - ratio[1]):
                             H -= 1
                             detected_H += 1
                             print(f"Horizontal box detected {detected_H}")
@@ -124,8 +124,8 @@ class BoxCounter():
                             next_layer_detected_H = 0
                             next_layer_detected_V = 0
                             for box in next_layer:
-                                if abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_length) > \
-                                    abs((avg_box_height / (box[3] - box[1]) * (box[2] - box[0])) - avg_box_width):
+                                len_by_height = ((box[2] - box[0]) / (box[3] - box[1]))
+                                if abs(len_by_height - ratio[0]) < abs(len_by_height - ratio[1]):
                                     next_layer_detected_H += 1
                                     print(f"Next layer horizontal box detected {next_layer_detected_H}")
                                 else:

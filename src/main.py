@@ -38,7 +38,8 @@ UPLOAD = False
 def initialize(image_path):
     # These are independent tasks
     boundaries = boundary_detector.get_boundaries(image_path)
-    annotations = ocr_client.get_annotations(image_path)
+    # annotations = ocr_client.get_annotations(image_path)
+    annotations = 0
     depth_map = depth_estimator.get_depth_map(image_path)
     pallets = pallet_detector.detect(image_path)
     boxes = box_detector.detect(image_path)
@@ -88,11 +89,11 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     front_left_boxes = left_boxes[0]
     front_right_boxes = right_boxes[0]
 
-    left_box_dimensions = converter.get_box_dimensions(front_left_boxes, left_pallet)
-    right_box_dimensions = converter.get_box_dimensions(front_right_boxes, right_pallet)
+    # left_box_dimensions = converter.get_box_dimensions(front_left_boxes, left_pallet)
+    # right_box_dimensions = converter.get_box_dimensions(front_right_boxes, right_pallet)
 
-    left_structure = stack_analyzer.analyze(left_box_dimensions, left_part_info["stacking_type"])
-    right_structure = stack_analyzer.analyze(right_box_dimensions, right_part_info["stacking_type"])
+    # left_structure = stack_analyzer.analyze(left_box_dimensions, left_part_info["stacking_type"])
+    # right_structure = stack_analyzer.analyze(right_box_dimensions, right_part_info["stacking_type"])
 
     left_box_stacks = box_counter.get_box_stack(front_left_boxes)
     right_box_stacks = box_counter.get_box_stack(front_right_boxes)
@@ -119,9 +120,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     layers=right_part_info["layers"])
 
     extra_left_box_count = box_counter.count_extra_boxes(stacking_type=left_part_info["stacking_type"], 
-                                                        avg_box_length=left_structure['avg_box_length'], 
-                                                        avg_box_width=left_structure['avg_box_width'], 
-                                                        avg_box_height=left_structure['avg_box_height'], 
+                                                        ratio=left_part_info["ratio"], 
                                                         layers=left_part_info["layers"], 
                                                         odd_layering=left_part_info["odd_layering"],
                                                         even_layering=left_part_info["even_layering"],
@@ -132,9 +131,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                         box_stacks=left_box_stacks)
 
     extra_right_box_count = box_counter.count_extra_boxes(stacking_type=right_part_info["stacking_type"], 
-                                                        avg_box_length=right_structure['avg_box_length'], 
-                                                        avg_box_width=right_structure['avg_box_width'], 
-                                                        avg_box_height=right_structure['avg_box_height'], 
+                                                        ratio=right_part_info["ratio"], 
                                                         layers=right_part_info["layers"], 
                                                         odd_layering=right_part_info["odd_layering"],
                                                         even_layering=right_part_info["even_layering"],
@@ -165,8 +162,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     print(f"{'':<20} | {'Left':<15} | {'Right':<15}")
     print(f"{'-'*20} | {'-'*15} | {'-'*15}")
     print(f"{'Stacking Type':<20} | {format_value(left_part_info['stacking_type'], 15)} | {format_value(right_part_info['stacking_type'], 15)}")
-    print(f"{'Avg Box Length':<20} | {format_value(left_structure['avg_box_length'], 15, 2)} | {format_value(right_structure['avg_box_length'], 15, 2)}")
-    print(f"{'Avg Box Width':<20} | {format_value(left_structure['avg_box_width'], 15, 2)} | {format_value(right_structure['avg_box_width'], 15, 2)}")
     print(f"{'Pallet Status':<20} | {format_value(left_pallet_status, 15)} | {format_value(right_pallet_status, 15)}")
     # print(f"{'Gap':<20} | {format_value(left_gap_in_inches, 15)} | {format_value(right_gap_in_inches, 15)}")
     print(f"{'Box Count Per Layer':<20} | {format_value(left_part_info['boxes_per_layer'], 15)} | {format_value(right_part_info['boxes_per_layer'], 15)}")

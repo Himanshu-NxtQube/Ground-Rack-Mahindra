@@ -47,7 +47,16 @@ class CSVUtils:
         except (KeyError, TypeError, ValueError):
             print("Layer wise depth diff not found for part number: ", part_number)
             return None
-    
+
+    def get_ratio(self, part_number):
+        try:
+            ratio = self.structure_data.loc[part_number, 'ratio']
+            ratio = map(float, ratio.split('/'))
+            return list(ratio)
+        except (KeyError, TypeError, ValueError):
+            print("Ratio not found for part number: ", part_number)
+            return None
+
     def get_all_part_info(self, part_number):
         return {
             "boxes_per_layer": self.get_boxes_per_layer(part_number),
@@ -55,5 +64,6 @@ class CSVUtils:
             "even_layering": self.get_even_layering(part_number),
             "layers": self.get_layers(part_number),
             "stacking_type": self.get_stacking_type(part_number),
-            "layer_wise_depth_diff": self.get_layer_wise_depth_diff(part_number)
+            "layer_wise_depth_diff": self.get_layer_wise_depth_diff(part_number),
+            "ratio": self.get_ratio(part_number)
         }
