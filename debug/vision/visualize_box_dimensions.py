@@ -46,20 +46,23 @@ def process_single_image(image_path):
     
     visualize_box_dimensions(image_path, left_boxes, right_boxes)
 
-    left_pallet_area = (int(left_pallet[2]) - int(left_pallet[0])) * (int(left_pallet[3]) - int(left_pallet[1]))
-    right_pallet_area = (int(right_pallet[2]) - int(right_pallet[0])) * (int(right_pallet[3]) - int(right_pallet[1]))
+    # left_pallet_area = (int(left_pallet[2]) - int(left_pallet[0])) * (int(left_pallet[3]) - int(left_pallet[1]))
+    # right_pallet_area = (int(right_pallet[2]) - int(right_pallet[0])) * (int(right_pallet[3]) - int(right_pallet[1]))
+
+    left_pallet_height = int(left_pallet[3]) - int(left_pallet[1])
+    right_pallet_height = int(right_pallet[3]) - int(right_pallet[1])
 
     for i, box in enumerate(left_boxes):
         l = round(int(box[2]) - int(box[0]), 2)
         h = round(int(box[3]) - int(box[1]), 2)
-        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(l*h)/left_pallet_area:.2f}")
+        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/left_pallet_height:.2f}")
 
     print("- "*30)
 
     for i, box in enumerate(right_boxes):
         l = round(int(box[2]) - int(box[0]), 2)
         h = round(int(box[3]) - int(box[1]), 2)
-        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(l*h)/right_pallet_area:.2f}")
+        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/right_pallet_height:.2f}")
 
 if __name__ == "__main__":
     for image in sorted(os.listdir(images_dir)):
