@@ -10,7 +10,7 @@ class StackValidator:
             return len(box_stacks)
         elif pallet_status == "partial":
             if stacking_type == "interlock":
-                if ((not odd_layering or pd.isna(odd_layering)) and (not even_layering or pd.isna(even_layering))):
+                if ((not odd_layering or pd.isna(odd_layering)) and (not even_layering or pd.isna(even_layering))) or (len(box_stacks) == 0):
                     return 0
                 
                 top_stack = box_stacks[0]
