@@ -52,17 +52,33 @@ def process_single_image(image_path):
     left_pallet_height = int(left_pallet[3]) - int(left_pallet[1])
     right_pallet_height = int(right_pallet[3]) - int(right_pallet[1])
 
+    left_sorted = []
+    right_sorted = []
+
     for i, box in enumerate(left_boxes):
         l = round(int(box[2]) - int(box[0]), 2)
         h = round(int(box[3]) - int(box[1]), 2)
-        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/left_pallet_height:.2f}")
+        # print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/left_pallet_height*3.14:.2f}")
+        left_sorted.append((i, l, h, l/h, (h)/left_pallet_height*3.14))
 
     print("- "*30)
 
     for i, box in enumerate(right_boxes):
         l = round(int(box[2]) - int(box[0]), 2)
         h = round(int(box[3]) - int(box[1]), 2)
-        print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/right_pallet_height:.2f}")
+        # print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/right_pallet_height*3.14:.2f}")
+        right_sorted.append((i, l, h, l/h, (h)/right_pallet_height*3.14))
+
+    left_sorted.sort(key=lambda x: x[4])
+    right_sorted.sort(key=lambda x: x[4])
+
+    for box in left_sorted:
+        print(f"\t\t{box[0]}: {box[1]} x {box[2]} => {box[3]:.2f} => {box[4]:.2f}") 
+
+    print("- "*30)
+
+    for box in right_sorted:
+        print(f"\t\t{box[0]}: {box[1]} x {box[2]} => {box[3]:.2f} => {box[4]:.2f}")
 
 if __name__ == "__main__":
     for image in sorted(os.listdir(images_dir)):
