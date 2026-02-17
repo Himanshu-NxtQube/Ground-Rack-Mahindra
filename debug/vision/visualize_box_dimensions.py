@@ -85,7 +85,7 @@ if __name__ == "__main__":
         print("\n\nProcessing:", image)
         if image.lower().endswith(".png") or image.lower().endswith(".jpg"):
             try:
-                process_single_image(images_dir + image)
+                process_single_image(os.path.join(images_dir, image))
             except Exception as e:
                 print("Error processing image:", image)
                 print(e)
