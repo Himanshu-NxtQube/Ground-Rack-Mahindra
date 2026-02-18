@@ -5,6 +5,7 @@ from ultralytics import YOLO
 
 class PalletStatus:
     def __init__(self):
+        pass
         # self.pallet_status_estimator = YOLO("./models/new pallet status model.pt")
 
     # def get_status(self, image_path, depth_map):
@@ -57,6 +58,7 @@ class PalletStatus:
     #     return {"left_status": left_box_result, "right_status": right_box_result,
     #             "left_bbox": left_bbox,           "right_bbox": right_bbox}
 
+    
     def get_status(self, box_stacks, boxes, layers, odd_layering, even_layering):
         if len(boxes[0]) == 0:
             return "empty"
