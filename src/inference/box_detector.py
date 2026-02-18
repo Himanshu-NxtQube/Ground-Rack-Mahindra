@@ -4,7 +4,7 @@ import cv2
 
 class BoxDetector:
     def __init__(self):
-        self.model = YOLO("models/190groundbox.pt", verbose=False)
+        self.model = YOLO("models/box_detect_200.pt", verbose=False)
         self.conf_threshold = 0.6
         self.back_box_threshold = 80
     
