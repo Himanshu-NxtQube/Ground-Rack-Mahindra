@@ -44,7 +44,7 @@ class CSVUtils:
             depth_values = self.structure_data.loc[part_number, 'depth values']
             depth_values = map(int, depth_values.split('/'))
             return list(depth_values)
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, AttributeError):
             print("Layer wise depth diff not found for part number: ", part_number)
             return None
 
@@ -53,7 +53,7 @@ class CSVUtils:
             ratio = self.structure_data.loc[part_number, 'ratio']
             ratio = map(float, ratio.split('/'))
             return list(ratio)
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, TypeError, ValueError, AttributeError):
             print("Ratio not found for part number: ", part_number)
             return None
 
