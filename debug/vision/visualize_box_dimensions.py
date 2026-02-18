@@ -11,7 +11,7 @@ box_detector = BoxDetector()
 pallet_detector = PalletDetector()
 boundary_detector = BoundaryDetector()
 
-images_dir = 'images/'
+images_dir = 'other/Marico images/'
 
 
 def initialize(image_path):
@@ -21,20 +21,22 @@ def initialize(image_path):
     boxes = box_detector.detect(image_path)
     return boundaries, pallets, boxes
 
-def visualize_box_dimensions(image_path, left_boxes, right_boxes):
+def visualize_box_dimensions(image_path, left_boxes, right_boxes, left_sorted, right_sorted):
     image = cv2.imread(image_path)
 
     for i, box in enumerate(left_boxes):
         cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
         bcx = (int(box[0]) + int(box[2]))/2
         bcy = (int(box[1]) + int(box[3]))/2
-        cv2.putText(image, f"{i}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 3)
+        cv2.putText(image, f"{i}", (int(box[0]+10), int(box[1]+35)), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
+        cv2.putText(image, f"{left_sorted[i][3]:.2f}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 5)
 
     for i, box in enumerate(right_boxes):
         cv2.rectangle(image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
         bcx = (int(box[0]) + int(box[2]))/2
         bcy = (int(box[1]) + int(box[3]))/2
-        cv2.putText(image, f"{i}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 3)
+        cv2.putText(image, f"{i}", (int(box[0]+10), int(box[1]+35)), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
+        cv2.putText(image, f"{right_sorted[i][3]:.2f}", (int(bcx), int(bcy)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 5)
     cv2.imwrite("output/visualized/" + image_path.split("/")[-1], image)
         
 
@@ -44,7 +46,6 @@ def process_single_image(image_path):
     left_boxes, right_boxes = box_detector.map_boxes(boxes, left_pallet, right_pallet)
     # combined_boxes = left_boxes + right_boxes
     
-    visualize_box_dimensions(image_path, left_boxes, right_boxes)
 
     # left_pallet_area = (int(left_pallet[2]) - int(left_pallet[0])) * (int(left_pallet[3]) - int(left_pallet[1]))
     # right_pallet_area = (int(right_pallet[2]) - int(right_pallet[0])) * (int(right_pallet[3]) - int(right_pallet[1]))
@@ -69,8 +70,8 @@ def process_single_image(image_path):
         # print(f"\t\t{i}: {l} x {h} => {l/h:.2f} => {(h)/right_pallet_height*3.14:.2f}")
         right_sorted.append((i, l, h, l/h, (h)/right_pallet_height*3.14))
 
-    left_sorted.sort(key=lambda x: x[4])
-    right_sorted.sort(key=lambda x: x[4])
+    # left_sorted.sort(key=lambda x: x[4])
+    # right_sorted.sort(key=lambda x: x[4])
 
     for box in left_sorted:
         print(f"\t\t{box[0]}: {box[1]} x {box[2]} => {box[3]:.2f} => {box[4]:.2f}") 
@@ -79,6 +80,10 @@ def process_single_image(image_path):
 
     for box in right_sorted:
         print(f"\t\t{box[0]}: {box[1]} x {box[2]} => {box[3]:.2f} => {box[4]:.2f}")
+
+    visualize_box_dimensions(image_path, left_boxes, right_boxes, left_sorted, right_sorted)
+
+    
 
 if __name__ == "__main__":
     for image in sorted(os.listdir(images_dir)):

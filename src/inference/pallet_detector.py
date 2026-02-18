@@ -3,7 +3,7 @@ import cv2
 
 class PalletDetector:
     def __init__(self):
-        self.model = YOLO("models/new_mahindra_gpallet_12_12_25.pt", verbose=False)
+        self.model = YOLO("models/Marico_Pallet.pt", verbose=False)
         self.conf_threshold = 0.6
     
     def filter_and_split_pallets(self, pallets, boundaries, w):
