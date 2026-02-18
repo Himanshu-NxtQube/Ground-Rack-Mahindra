@@ -98,10 +98,12 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_box_stacks = box_counter.get_box_stack(front_left_boxes)
     right_box_stacks = box_counter.get_box_stack(front_right_boxes)
 
-    pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
+    # pallet_status_result = pallet_status_estimator.get_status(image_path, depth_map)
 
-    left_pallet_status = pallet_status_result['left_status']
-    right_pallet_status = pallet_status_result['right_status']
+    # left_pallet_status = pallet_status_result['left_status']
+    # right_pallet_status = pallet_status_result['right_status']
+    left_pallet_status = pallet_status_estimator.get_status(left_box_stacks, left_boxes, left_part_info["layers"], left_part_info["odd_layering"], left_part_info["even_layering"])
+    right_pallet_status = pallet_status_estimator.get_status(right_box_stacks, right_boxes, right_part_info["layers"], right_part_info["odd_layering"], right_part_info["even_layering"])
 
     left_stack_count = stack_validator.count_stack(box_stacks=left_box_stacks, 
                                                     pallet_status=left_pallet_status, 
