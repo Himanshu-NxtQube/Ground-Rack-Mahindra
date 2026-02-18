@@ -79,7 +79,7 @@ class PalletStatus:
                 return "full"
             else:
                 return "partial"
-        else stacking_type == "normal":
+        elif stacking_type == "normal":
             if len(top_stack) == layers:
                 return "full"
             else:
