@@ -56,6 +56,13 @@ class CSVUtils:
         except (KeyError, TypeError, ValueError, AttributeError):
             print("Ratio not found for part number: ", part_number)
             return None
+    
+    def get_front_boxes(self, part_number):
+        try:
+            return self.structure_data.loc[part_number, 'front boxes']
+        except (KeyError, TypeError, ValueError):
+            print("Front boxes not found for part number: ", part_number)
+            return None
 
     def get_all_part_info(self, part_number):
         return {
@@ -65,5 +72,6 @@ class CSVUtils:
             "layers": self.get_layers(part_number),
             "stacking_type": self.get_stacking_type(part_number),
             "layer_wise_depth_diff": self.get_layer_wise_depth_diff(part_number),
-            "ratio": self.get_ratio(part_number)
+            "ratio": self.get_ratio(part_number),
+            "front_boxes": self.get_front_boxes(part_number)
         }

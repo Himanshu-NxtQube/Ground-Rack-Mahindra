@@ -59,7 +59,7 @@ class PalletStatus:
     #             "left_bbox": left_bbox,           "right_bbox": right_bbox}
 
     
-    def get_status(self, box_stacks, boxes, layers, stacking_type, odd_layering, even_layering):
+    def get_status(self, box_stacks, boxes, layers, stacking_type, odd_layering, even_layering, front_boxes):
         if len(boxes[0]) == 0:
             return "empty"
 
@@ -80,7 +80,7 @@ class PalletStatus:
             else:
                 return "partial"
         elif stacking_type == "normal":
-            if len(top_stack) == layers:
+            if len(top_stack) == front_boxes:
                 return "full"
             else:
                 return "partial"
