@@ -1,42 +1,46 @@
 import pandas as pd
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class CSVUtils:
     def __init__(self):
         self.structure_data = pd.read_csv("data/structure_data.csv", index_col="part number")
+        logger.info("Structure data loaded successfully")
 
     def get_boxes_per_layer(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'boxes per layer']
         except (KeyError, TypeError, ValueError):
-            print("Boxes per layer not found for part number: ", part_number)
+            logger.error("Boxes per layer not found for part number: %s", part_number)
             return None
 
     def get_odd_layering(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'odd layering']
         except (KeyError, TypeError, ValueError):
-            print("Odd layering not found for part number: ", part_number)
+            logger.error("Odd layering not found for part number: %s", part_number)
             return None
 
     def get_even_layering(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'even layering']
         except (KeyError, TypeError, ValueError):
-            print("Even layering not found for part number: ", part_number)
+            logger.error("Even layering not found for part number: %s", part_number)
             return None
 
     def get_layers(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'layers']
         except (KeyError, TypeError, ValueError):
-            print("Layers not found for part number: ", part_number)
+            logger.error("Layers not found for part number: %s", part_number)
             return None        
 
     def get_stacking_type(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'stacking type']
         except (KeyError, TypeError, ValueError):
-            print("Stacking type not found for part number: ", part_number)
+            logger.error("Stacking type not found for part number: %s", part_number)
             return None
     
     def get_layer_wise_depth_diff(self, part_number):
@@ -45,7 +49,7 @@ class CSVUtils:
             depth_values = map(int, depth_values.split('/'))
             return list(depth_values)
         except (KeyError, TypeError, ValueError, AttributeError):
-            print("Layer wise depth diff not found for part number: ", part_number)
+            logger.error("Layer wise depth diff not found for part number: %s", part_number)
             return None
 
     def get_ratio(self, part_number):
@@ -54,14 +58,14 @@ class CSVUtils:
             ratio = map(float, ratio.split('/'))
             return list(ratio)
         except (KeyError, TypeError, ValueError, AttributeError):
-            print("Ratio not found for part number: ", part_number)
+            logger.error("Ratio not found for part number: %s", part_number)
             return None
     
     def get_front_boxes(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'front boxes']
         except (KeyError, TypeError, ValueError):
-            print("Front boxes not found for part number: ", part_number)
+            logger.error("Front boxes not found for part number: %s", part_number)
             return None
 
     def get_all_part_info(self, part_number):

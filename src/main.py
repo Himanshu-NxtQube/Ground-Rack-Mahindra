@@ -1,34 +1,32 @@
 import os
 import cv2
-from analysis.stacking_analyzer import StackingAnalyzer
+from dotenv import load_dotenv
 from analysis.box_counter import BoxCounter 
-from analysis.converter import Converter
 from inference.box_detector import BoxDetector
 from inference.pallet_detector import PalletDetector
 from inference.depth_estimation import DepthEstimator
-from inference.stack_validator import StackValidator
-from inference.pallet_status import PalletStatus
+from inference.stack_validator import count_stack
+from inference.pallet_status import get_pallet_status
 from inference.boundary_detection import BoundaryDetector
 from inference.ocr_parser import OCRParser
 from inference.google_ocr import OCRClient
 from utils.csv_utils import CSVUtils
-from utils.visualizer import Visualizer
 from utils.rds_operator import RDSOperator
-from utils.s3_operator import upload_images
+from utils.logger import setup_logging, get_logger
+from utils.visualizer import visualize
 
-cv2.setLogLevel(2) 
+cv2.setLogLevel(2)
+load_dotenv()
+
+setup_logging(os.getenv("environment"))
+logger = get_logger(__name__)
 
 box_detector = BoxDetector()
 box_counter = BoxCounter()
 pallet_detector = PalletDetector()
-converter = Converter()
 rds_operator = RDSOperator()
 ocr_client = OCRClient()
-visualizer = Visualizer()
-stack_analyzer = StackingAnalyzer()
 depth_estimator = DepthEstimator("depth_anything_v2")
-pallet_status_estimator = PalletStatus()
-stack_validator = StackValidator()
 ocr_parser = OCRParser()
 boundary_detector = BoundaryDetector()
 csv_utils = CSVUtils()
@@ -38,8 +36,8 @@ UPLOAD = False
 def initialize(image_path):
     # These are independent tasks
     boundaries = boundary_detector.get_boundaries(image_path)
-    # annotations = ocr_client.get_annotations(image_path)
-    annotations = 0
+    annotations = ocr_client.get_annotations(image_path)
+    # annotations = 0
     depth_map = depth_estimator.get_depth_map(image_path)
     pallets = pallet_detector.detect(image_path)
     boxes = box_detector.detect(image_path)
@@ -84,7 +82,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                             layer_wise_depth_diff=right_part_info["layer_wise_depth_diff"])
 
     if debug:
-        visualizer.visualize(image_path, left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
+        visualize(image_path, left_boxes, right_boxes, left_pallet, right_pallet, depth_map)
 
     front_left_boxes = left_boxes[0]
     front_right_boxes = right_boxes[0]
@@ -102,10 +100,10 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
 
     # left_pallet_status = pallet_status_result['left_status']
     # right_pallet_status = pallet_status_result['right_status']
-    left_pallet_status = pallet_status_estimator.get_status(left_box_stacks, left_boxes, left_part_info["layers"], left_part_info["stacking_type"], left_part_info["odd_layering"], left_part_info["even_layering"], left_part_info["front_boxes"])
-    right_pallet_status = pallet_status_estimator.get_status(right_box_stacks, right_boxes, right_part_info["layers"], right_part_info["stacking_type"], right_part_info["odd_layering"], right_part_info["even_layering"], right_part_info["front_boxes"])
+    left_pallet_status = get_pallet_status(left_box_stacks, left_boxes, left_part_info["layers"], left_part_info["stacking_type"], left_part_info["odd_layering"], left_part_info["even_layering"], left_part_info["front_boxes"])
+    right_pallet_status = get_pallet_status(right_box_stacks, right_boxes, right_part_info["layers"], right_part_info["stacking_type"], right_part_info["odd_layering"], right_part_info["even_layering"], right_part_info["front_boxes"])
 
-    left_stack_count = stack_validator.count_stack(box_stacks=left_box_stacks, 
+    left_stack_count = count_stack(box_stacks=left_box_stacks, 
                                                     pallet_status=left_pallet_status, 
                                                     odd_layering=left_part_info["odd_layering"],
                                                     even_layering=left_part_info["even_layering"],
@@ -113,7 +111,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
                                                     boxes_per_layer=left_part_info["boxes_per_layer"],
                                                     layers=left_part_info["layers"])
     
-    right_stack_count = stack_validator.count_stack(box_stacks=right_box_stacks, 
+    right_stack_count = count_stack(box_stacks=right_box_stacks, 
                                                     pallet_status=right_pallet_status, 
                                                     odd_layering=right_part_info["odd_layering"],
                                                     even_layering=right_part_info["even_layering"],
@@ -173,7 +171,6 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     print("\n")
 
     if upload:
-        s3_key, s3_url = upload_images(image_path)
         key_id = rds_operator.store_img_info(image_path)
                                 #  image_name, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""
         rds_operator.insert_record(image_name, report_id, rack_dict['Q3'], total_left_boxes, left_pallet_status, "NA", "", key_id, exclusion="" if left_pallet_status != "N/A" else "empty rack")
@@ -190,14 +187,14 @@ def process_dir(dir_name, upload=False):
     if upload:
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
-        print("Image:",image_name)
+        logger.debug("Image: %s", image_name)
         image_path = os.path.join(dir_name, image_name) 
 
-        try:
-            process_single_image(image_path, report_id, debug=True, upload=upload)
-        except Exception as e:
-            print("Error processing image:", image_name)
-            print(e)
+        # try:
+        process_single_image(image_path, report_id, debug=True, upload=upload)
+        # except Exception as e:
+            # print("Error processing image:", image_name)
+            # print(e)
 
 if __name__ == "__main__":
     process_dir(IMAGES_DIR, upload=UPLOAD)

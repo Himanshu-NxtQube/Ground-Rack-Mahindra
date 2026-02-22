@@ -1,9 +1,13 @@
 import pandas as pd 
+from utils.logger import get_logger
 
-class BoxCounter():
+logger = get_logger(__name__)
+
+class BoxCounter:
     def __init__(self):
         self.pallet_len_inches = 46
         self.pallet_width_inches = 40
+        logger.info("BoxCounter initialized")
 
     # def count_boxes_per_layer(self, box_stacks, boxes_per_layer, layers,  avg_box_length, avg_box_width, stacking_type, gap_in_inches):
     #     if stacking_type == "interlock":
@@ -61,7 +65,7 @@ class BoxCounter():
             partial_stack_boxes = [front_boxes_list]
             partial_stack_boxes.extend(box_list[1:])
 
-            print("Partial Stack Boxes:", partial_stack_boxes)
+            # print("Partial Stack Boxes:", partial_stack_boxes)
 
             total_extra_boxes = boxes_per_layer
 
@@ -97,11 +101,11 @@ class BoxCounter():
                         if abs(len_by_height - ratio[0]) < abs(len_by_height - ratio[1]):
                             H -= 1
                             detected_H += 1
-                            print(f"Horizontal box detected {detected_H}")
+                            # print(f"Horizontal box detected {detected_H}")
                         else:
                             V -= 1
                             detected_V += 1
-                            print(f"Vertical box detected {detected_V}")
+                            # print(f"Vertical box detected {detected_V}")
                     
                     if detected_H == 0 and detected_V == 1 and overlapping_V > 0:
                         # h0v1_overlap_case = True
@@ -127,20 +131,20 @@ class BoxCounter():
                                 len_by_height = ((box[2] - box[0]) / (box[3] - box[1]))
                                 if abs(len_by_height - ratio[0]) < abs(len_by_height - ratio[1]):
                                     next_layer_detected_H += 1
-                                    print(f"Next layer horizontal box detected {next_layer_detected_H}")
+                                    # print(f"Next layer horizontal box detected {next_layer_detected_H}")
                                 else:
                                     next_layer_detected_V += 1
-                                    print(f"Next layer vertical box detected {next_layer_detected_V}")
+                                    # print(f"Next layer vertical box detected {next_layer_detected_V}")
 
                             # if (next_layer_H + next_layer_V) - (next_layer_detected_H + next_layer_detected_V) != 1:
                             total_extra_boxes -= (next_layer_H - next_layer_detected_H)
-                            print(f"Removing back horizontal visible boxes {(next_layer_H - next_layer_detected_H)}")
+                            # print(f"Removing back horizontal visible boxes {(next_layer_H - next_layer_detected_H)}")
                                 
                             
                             
                 total_extra_boxes -= H
                 total_extra_boxes -= V
-                print("Removed:", (H+V))
+                # print("Removed:", (H+V))
 
                 if partial_box_layer_found:
                     break

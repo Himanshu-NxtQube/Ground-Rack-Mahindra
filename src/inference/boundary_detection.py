@@ -1,6 +1,7 @@
 from ultralytics import YOLO
 import cv2
-import os
+from utils.logger import get_logger
+logger = get_logger(__name__)
 
 class BoundaryDetector:
     def __init__(self):
@@ -8,6 +9,7 @@ class BoundaryDetector:
         self.model = YOLO("models/Mahindra_orange_blue.pt")
         self.boundary_threshold = 0.1
         self.merge_threshold = 50
+        logger.info("BoundaryDetector model loaded")
 
     def get_boundaries(self, image_path):
         """
@@ -50,17 +52,17 @@ class BoundaryDetector:
         merged_centers = self._merge_close_centers(blue_boxes, self.merge_threshold)
 
         if len(merged_centers) == 0:
-            print("⚠️ No blue bars detected. Using image edges.")
+            logger.warning("⚠️ No blue bars detected. Using image edges.")
             left_x = 0
             right_x = img_width - 1
         elif len(merged_centers) == 1:
             center = merged_centers[0]
             if center < img_width // 2:
-                print("⚠️ Only one blue bar on left side. Assuming right = image edge.")
+                logger.warning("⚠️ Only one blue bar on left side. Assuming right = image edge.")
                 left_x = center
                 right_x = img_width - 1
             else:
-                print("⚠️ Only one blue bar on right side. Assuming left = image edge.")
+                logger.warning("⚠️ Only one blue bar on right side. Assuming left = image edge.")
                 left_x = 0
                 right_x = center
         else:
@@ -73,9 +75,9 @@ class BoundaryDetector:
         lower = [y2 for y1, y2 in orange_boxes if y1 >= y_mid]
 
         if not upper:
-            print("⚠️ No upper orange bar detected. Using top of image.")
+            logger.warning("⚠️ No upper orange bar detected. Using top of image.")
         if not lower:
-            print("⚠️ No lower orange bar detected. Using bottom of image.")
+            logger.warning("⚠️ No lower orange bar detected. Using bottom of image.")
 
         upper_y = int(min(upper)) if upper else 0
         lower_y = int(max(lower)) if lower else img_height - 1

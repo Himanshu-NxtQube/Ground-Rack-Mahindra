@@ -3,6 +3,9 @@ import boto3
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
  
 # Load variables from .env file
 load_dotenv()
@@ -30,7 +33,7 @@ def upload_images(image_path):
         # print(f"Uploaded: {image_path} → {s3_url}")
         return s3_key, s3_url
     except Exception as e:
-        print(f"Failed to upload {image_name}: {e}")
+        logger.error(f"Failed to upload {image_name}: {e}")
 
 if __name__ == "__main__":
     s3_key, s3_url = upload_images("./testing images/debug/DJI_0485.JPG")

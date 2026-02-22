@@ -3,6 +3,9 @@ import os
 import pymysql
 from dotenv import load_dotenv
 from utils.s3_operator import upload_images
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 load_dotenv()
 
 class RDSOperator:
@@ -14,6 +17,8 @@ class RDSOperator:
             database=os.getenv("rds_dbname"),           # Target DB name
             port=int(os.getenv("rds_port", 3306))                                # Default MySQL port
         )
+        logger.info("RDS connection established.")
+        
     def create_report(self, user_id, operator_name='test', report_name = datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
         with self.conn.cursor() as cursor:
             # Generate timestamp-based report name
@@ -51,7 +56,7 @@ class RDSOperator:
                 # print("Insert successful to image-obj-keys.")
                 return image_obj_key_id
             except:
-                print("Insert unsuccessful to image-obj-keys.")
+                logger.error("Insert unsuccessful to image-obj-keys.")
     
     def insert_record(self, image_name, report_id, rack_id, box_number, invoice_number, box_quantity, part_number, image_obj_key_id, unique_id="", user_id=14, exclusion="", barcode=""):
         try:
@@ -102,7 +107,7 @@ class RDSOperator:
                         existing[0]
                     )
                     cursor.execute(update_query, update_values)
-                    print(f"Updated record with id = {existing[0]}")
+                    logger.info(f"Updated record with id = {existing[0]}")
                 else:
                     # --- Insert new record ---
                     insert_query = """
@@ -138,173 +143,9 @@ class RDSOperator:
                         user_id
                     )
                     cursor.execute(insert_query, insert_values)
-                    print("Inserted new record.")
+                    logger.info("Inserted new record.")
 
                 self.conn.commit()
 
         except Exception as e:
-            print("Insert/Update unsuccessful:", e)
-        
-        
-    # def store_data_to_RDS(self, image_path, conn, user_id, image_obj_key_id, report_id, img_dims, rack_dict, records, mapping_info, exclusions, pallet_status=None, box_counts=None, stack_counts=None):
-    #     final_output = build_json_result(image_path, img_dims, rack_dict, records, mapping_info, exclusions, user_id, pallet_status, box_counts, stack_counts)
-
-        
-
-    #     for row in final_output:
-    #         try:
-    #             with conn.cursor() as cursor:
-    #                 # --- Check for existing record ---
-    #                 if row['UNIQUE_ID'] == None or row['UNIQUE_ID'] == "":
-    #                     check_query = """
-    #                     SELECT id FROM inferances
-    #                     WHERE uniqueId = %s AND userId = %s AND barcode_number = %s
-    #                     """
-    #                     check_values = (row['UNIQUE_ID'], user_id, row['BARCODE_ID'])  # userId is hardcoded to 3
-
-    #                     cursor.execute(check_query, check_values)
-    #                     existing = cursor.fetchone()
-    #                 else:
-    #                     existing = False
-
-    #                 # is_non_conformity = True if row['EXCLUSION'][:5] == "There" else False
-    #                 is_non_conformity = row['EXCLUSION'] not in ("empty rack", "", "Predicted")
-    #                 status = None if 'STATUS' not in row.keys() else 'filled' if row['STATUS'] == 'full' else row['STATUS']
-
-    #                 if existing:
-    #                     # --- Update existing record ---
-    #                     update_query = """
-    #                     UPDATE inferances
-    #                     SET
-    #                         image_name = %s, rack_id = %s, box_number = %s, invoice_number = %s,
-    #                         box_quantity = %s, part_number = %s, exclusion = %s, status = %s,
-    #                         is_non_conformity = %s, isDispatched = %s, isDeleted = %s,
-    #                         isReplishment = %s, reportId = %s, imageObjKeyId = %s
-    #                     WHERE id = %s
-    #                     """
-    #                     update_values = (
-    #                         row['IMG_ID'], 
-    #                         row['RACK_ID'] if not row['RACK_ID'] else "", 
-    #                         row['BOXNUMBER'] if not row['BOXNUMBER'] else "", 
-    #                         row['INVOICE_NUMBER'] if not row['INVOICE_NUMBER'] else "",
-    #                         row['BOXQUANTITY'] if not row['BOXQUANTITY'] else "", 
-    #                         row['PARTNUMBER'] if not row['PARTNUMBER'] else "", 
-    #                         row['EXCLUSION'], 
-    #                         status,
-    #                         is_non_conformity, 
-    #                         False, 
-    #                         False, 
-    #                         False, 
-    #                         report_id, 
-    #                         image_obj_key_id, 
-    #                         existing[0]
-    #                     )
-    #                     cursor.execute(update_query, update_values)
-    #                     print(f"Updated record with id = {existing[0]}")
-    #                 else:
-    #                     # --- Insert new record ---
-    #                     insert_query = """
-    #                     INSERT INTO inferances (
-    #                         uniqueId, barcode_number, image_name, rack_id, box_number,
-    #                         invoice_number, box_quantity, part_number, exclusion, status,
-    #                         is_non_conformity, isDispatched, isDeleted, isReplishment,
-    #                         reportId, imageObjKeyId, userId
-    #                     ) VALUES (
-    #                         %s, %s, %s, %s, %s,
-    #                         %s, %s, %s, %s, %s,
-    #                         %s, %s, %s, %s,
-    #                         %s, %s, %s
-    #                     )
-    #                     """
-    #                     insert_values = (
-    #                         row['UNIQUE_ID'] if row['UNIQUE_ID'] else "", 
-    #                         row['BARCODE_ID'] if row['BARCODE_ID'] else "", 
-    #                         row['IMG_ID'],
-    #                         row['RACK_ID'] if row['RACK_ID'] else "", 
-    #                         row['BOXNUMBER'] if row['BOXNUMBER'] else "", 
-    #                         row['INVOICE_NUMBER'] if row['INVOICE_NUMBER'] else "",
-    #                         row['BOXQUANTITY'] if row['BOXQUANTITY'] else "", 
-    #                         row['PARTNUMBER'] if row['PARTNUMBER'] else "",
-    #                         row['EXCLUSION'], 
-    #                         status,
-    #                         is_non_conformity, 
-    #                         False, 
-    #                         False, 
-    #                         False,
-    #                         report_id, 
-    #                         image_obj_key_id, 
-    #                         user_id
-    #                     )
-    #                     cursor.execute(insert_query, insert_values)
-    #                     print("Inserted new record.")
-
-    #                 conn.commit()
-
-    #         except Exception as e:
-    #             print("Insert/Update unsuccessful:", e)
-
-        # for i in range(len(final_output)):
-        #     try:
-        #         with conn.cursor() as cursor:
-        #             # --- Insert Query ---
-        #             query = """
-        #             INSERT INTO inferances (
-        #                 uniqueId, barcode_number, image_name, rack_id, box_number,
-        #                 invoice_number, box_quantity, part_number, exclusion, status,
-        #                 is_non_conformity, isDispatched, isDeleted, isReplishment,
-        #                 reportId, imageObjKeyId, userId
-        #             ) VALUES (
-        #                 %s, %s, %s, %s, %s,
-        #                 %s, %s, %s, %s, %s,
-        #                 %s, %s, %s, %s,
-        #                 %s, %s, %s
-        #             )
-        #             """
-        #             if final_output[i]['EXCLUSION'] != "":
-        #                 is_non_conformity = True
-        #             else:
-        #                 is_non_conformity = False
-        #             # --- Values to Insert ---
-        #             values = (
-        #                 final_output[i]['UNIQUE_ID'],            # uniqueId
-        #                 final_output[i]['BARCODE_ID'],         # barcode_number
-        #                 final_output[i]['IMG_ID'],        # image_name
-        #                 final_output[i]['RACK_ID'],           # rack_id
-        #                 final_output[i]['BOXNUMBER'],              # box_number
-        #                 final_output[i]['INVOICE_NUMBER'],            # invoice_number
-        #                 final_output[i]['BOXQUANTITY'],                  # box_quantity
-        #                 final_output[i]['PARTNUMBER'],             # part_number
-        #                 final_output[i]['EXCLUSION'],                # exclusion
-        #                 final_output[i]['STATUS'],              # status ('empty', 'partial', 'filled')
-        #                 is_non_conformity,                 # is_non_conformity
-        #                 False,                 # isDispatched
-        #                 False,                 # isDeleted
-        #                 False,                 # isReplishment
-        #                 report_id,                     # reportId (integer) # to be removed
-        #                 s3_key,                     # imageObjKeyId (integer or None)
-        #                 user_id                      # userId (integer)
-        #             )
-
-        #             # --- Execute and Commit ---
-        #             cursor.execute(query, values)
-        #             conn.commit()
-        #             print("Insert successful.")
-        #     except:
-        #         print("Insert unsuccessful")
-            
-
-            
-        
-
-            
-'''
-userId, 
-
-report_name,
-
-operator_name,
-
-date_image_captured,
-
-rack_number
-'''
+            logger.error("Insert/Update unsuccessful:", e)
