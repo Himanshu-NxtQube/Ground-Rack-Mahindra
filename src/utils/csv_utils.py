@@ -1,17 +1,21 @@
 import pandas as pd
 from utils.logger import get_logger
+from utils.error_bucket import ErrorBucket
+from utils.error_codes import ErrorCodes
 
 logger = get_logger(__name__)
 
 class CSVUtils:
     def __init__(self):
         self.structure_data = pd.read_csv("data/structure_data.csv", index_col="part number")
+        self.error_bucket = ErrorBucket()
         logger.info("Structure data loaded successfully")
 
     def get_boxes_per_layer(self, part_number):
         try:
             return self.structure_data.loc[part_number, 'boxes per layer']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.BOXES_PER_LAYER_NOT_FOUND, part_number)
             logger.error("Boxes per layer not found for part number: %s", part_number)
             return None
 
@@ -19,6 +23,7 @@ class CSVUtils:
         try:
             return self.structure_data.loc[part_number, 'odd layering']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.ODD_LAYERING_NOT_FOUND, part_number)
             logger.error("Odd layering not found for part number: %s", part_number)
             return None
 
@@ -26,6 +31,7 @@ class CSVUtils:
         try:
             return self.structure_data.loc[part_number, 'even layering']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.EVEN_LAYERING_NOT_FOUND, part_number)
             logger.error("Even layering not found for part number: %s", part_number)
             return None
 
@@ -33,6 +39,7 @@ class CSVUtils:
         try:
             return self.structure_data.loc[part_number, 'layers']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.LAYERS_NOT_FOUND, part_number)
             logger.error("Layers not found for part number: %s", part_number)
             return None        
 
@@ -40,6 +47,7 @@ class CSVUtils:
         try:
             return self.structure_data.loc[part_number, 'stacking type']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.STACKING_TYPE_NOT_FOUND, part_number)
             logger.error("Stacking type not found for part number: %s", part_number)
             return None
     
@@ -49,6 +57,7 @@ class CSVUtils:
             depth_values = map(int, depth_values.split('/'))
             return list(depth_values)
         except (KeyError, TypeError, ValueError, AttributeError):
+            self.error_bucket.add_partnumber(ErrorCodes.LAYER_WISE_DEPTH_DIFF_NOT_FOUND, part_number)
             logger.error("Layer wise depth diff not found for part number: %s", part_number)
             return None
 
@@ -58,6 +67,7 @@ class CSVUtils:
             ratio = map(float, ratio.split('/'))
             return list(ratio)
         except (KeyError, TypeError, ValueError, AttributeError):
+            self.error_bucket.add_partnumber(ErrorCodes.RATIO_NOT_FOUND, part_number)
             logger.error("Ratio not found for part number: %s", part_number)
             return None
     
@@ -65,6 +75,7 @@ class CSVUtils:
         try:
             return self.structure_data.loc[part_number, 'front boxes']
         except (KeyError, TypeError, ValueError):
+            self.error_bucket.add_partnumber(ErrorCodes.FRONT_BOXES_NOT_FOUND, part_number)
             logger.error("Front boxes not found for part number: %s", part_number)
             return None
 

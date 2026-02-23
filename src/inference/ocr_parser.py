@@ -1,14 +1,17 @@
 import regex
-import cv2
+from utils.error_codes import ErrorCodes
+from utils.error_bucket import ErrorBucket
 from inference.infer_func import infer_Q3_Q4
 
 class OCRParser:
     def __init__(self):
         self.area_threshold = 4000
+        self.error_bucket = ErrorBucket()
     
-    def get_rack_ids(self, annotations, boundaries, image_dims):
-        self.center_x = image_dims[0]/2
-        self.center_y = image_dims[1]/2
+    def get_rack_ids(self, annotations, boundaries, image_path):
+        image_shape = cv2.imread(image_path).shape
+        self.center_x = image_shape[0]/2
+        self.center_y = image_shape[1]/2
         left_line_x, right_line_x, upper_line_y, lower_line_y = boundaries
 
         # all_rack_ids = []
@@ -133,8 +136,14 @@ class OCRParser:
             v for v in [Q3_max_value, Q4_max_value] if v is not None
         ) if Q3_max_value is not None or Q4_max_value is not None else None
 
+        rack_dict = infer_Q3_Q4(rack_dict)
 
-        return infer_Q3_Q4(rack_dict)
+        if rack_dict['Q3'] == '' or rack_dict['Q4'] == '':
+            self.error_bucket.add(ErrorCodes.RACK_ID_NOT_FOUND, image_path)
+        elif abs(int(rack_dict['Q3'][-2:]) - int(rack_dict['Q4'][-2:])) != 1:
+            self.error_bucket.add(ErrorCodes.RACK_ID_NOT_ADJACENT, image_path)
+
+        return rack_dict
 
     def compute_bbox(self, vertices):
         area = 0

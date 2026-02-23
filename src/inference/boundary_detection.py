@@ -1,5 +1,7 @@
 from ultralytics import YOLO
 import cv2
+from utils.error_bucket import ErrorBucket
+from utils.error_codes import ErrorCodes
 from utils.logger import get_logger
 logger = get_logger(__name__)
 
@@ -9,6 +11,7 @@ class BoundaryDetector:
         self.model = YOLO("models/Mahindra_orange_blue.pt")
         self.boundary_threshold = 0.1
         self.merge_threshold = 50
+        self.error_bucket = ErrorBucket()
         logger.info("BoundaryDetector model loaded")
 
     def get_boundaries(self, image_path):
@@ -50,6 +53,7 @@ class BoundaryDetector:
         # Process blue bar: horizontal boundaries (X-axis)
         blue_boxes.sort()
         merged_centers = self._merge_close_centers(blue_boxes, self.merge_threshold)
+        bars_detected = False
 
         if len(merged_centers) == 0:
             logger.warning("⚠️ No blue bars detected. Using image edges.")
@@ -68,6 +72,10 @@ class BoundaryDetector:
         else:
             left_x = merged_centers[0]
             right_x = merged_centers[-1]
+            bars_detected = True
+        
+        if not bars_detected:
+            self.error_bucket.add(ErrorCodes.BLUE_BAR_DETECTION_FAILURE, image_path)
 
         # Process orange bar: vertical boundaries (Y-axis)
         y_mid = img_height // 2
@@ -78,6 +86,9 @@ class BoundaryDetector:
             logger.warning("⚠️ No upper orange bar detected. Using top of image.")
         if not lower:
             logger.warning("⚠️ No lower orange bar detected. Using bottom of image.")
+
+        if not lower or not upper:
+            self.error_bucket.add(ErrorCodes.ORANGE_BAR_DETECTION_FAILURE, image_path)
 
         upper_y = int(min(upper)) if upper else 0
         lower_y = int(max(lower)) if lower else img_height - 1

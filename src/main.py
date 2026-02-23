@@ -57,7 +57,7 @@ def process_single_image(image_path, report_id, debug=False, upload=False):
     left_boxes, right_boxes = box_detector.map_boxes(boxes, left_pallet, right_pallet)
 
     # OCR Operations -------------------------------------------------------
-    # rack_dict = ocr_parser.get_rack_ids(annotations, boundaries, image_shape)
+    # rack_dict = ocr_parser.get_rack_ids(annotations, boundaries, image_path)
 
     ## TEMPORARY CHANGE: passing IMAGE_NAME as PART_NUMBER
     left_part_number = f"{image_name.split('.')[0]}_L"
