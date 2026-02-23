@@ -58,7 +58,7 @@ class BoxCounter:
             else:
                 layering = even_layering.split("/")
 
-            print("Layering:", layering)
+            # print("Layering:", layering)
 
             front_boxes_list = box_stacks[0] if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else []
 

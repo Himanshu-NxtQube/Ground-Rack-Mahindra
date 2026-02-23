@@ -188,6 +188,7 @@ def process_dir(dir_name, upload=False):
         report_id = rds_operator.create_report(14)
     for image_name in sorted(os.listdir(dir_name)):
         logger.debug("Image: %s", image_name)
+        print("Image:", image_name)
         image_path = os.path.join(dir_name, image_name) 
 
         # try:
