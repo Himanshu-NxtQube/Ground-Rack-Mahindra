@@ -209,8 +209,8 @@ if __name__ == "__main__":
     # model_path = "models/mahidra_ground_pallet.pt"
     # model_path = "./models"
     model = YOLO(model_path)
-    image_dir = "images/"
-    test_images = ['18.png', '19.png', '20.png', '21.png']
+    image_dir = 'other/Marico images'
+    test_images = ['DJI_0100.JPG']
     for image in os.listdir(image_dir):
         if not test_images or image in test_images:
             image_path = os.path.join(image_dir, image)

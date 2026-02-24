@@ -26,7 +26,7 @@ class BoxDetector:
                 left_margin = 0.1 * (left_pallet[2] - left_pallet[0])
                 if left_pallet[0] + left_margin < cx < left_pallet[2] - left_margin:
                     left_boxes.append(box)
-            elif right_pallet is not None:
+            if right_pallet is not None:
                 right_margin = 0.1 * (right_pallet[2] - right_pallet[0])
                 if right_pallet[0] + right_margin < cx < right_pallet[2] - right_margin:
                     right_boxes.append(box)
