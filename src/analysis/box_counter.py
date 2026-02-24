@@ -48,7 +48,7 @@ class BoxCounter:
                     i += 1
                 if i < len(box_list):
                     current_layer_boxes = front_boxes * (layers - i)
-                    return current_layer_boxes - (front_boxes - box_list[i])
+                    return current_layer_boxes - (front_boxes - len(box_list[i]))
             else:
                 current_layer_boxes = front_boxes * layers 
                 return current_layer_boxes - (front_boxes - front_layer_boxes)
