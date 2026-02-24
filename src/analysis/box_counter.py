@@ -31,20 +31,32 @@ class BoxCounter:
             
     #         return boxes_per_layer
     
-    def count_extra_boxes(self, stacking_type, ratio, layers, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
+    def count_extra_boxes(self, stacking_type, ratio, layers, front_boxes, odd_layering, even_layering, box_list, stack_count, pallet_status, boxes_per_layer, box_stacks):
         if stacking_type == "normal":
-            return self.count_extra_boxes_in_normal(pallet_status, box_stacks, layers, stack_count, box_list)
+            return self.count_extra_boxes_in_normal(pallet_status, box_stacks, layers, front_boxes, stack_count, box_list)
         elif stacking_type == "interlock":
             return self.count_extra_boxes_in_interlock(pallet_status, boxes_per_layer, odd_layering, even_layering, stack_count, box_stacks, box_list, ratio)
         return 0
 
-    def count_extra_boxes_in_normal(self, pallet_status, box_stacks, layers, stack_count, box_list):
+    def count_extra_boxes_in_normal(self, pallet_status, box_stacks, layers, front_boxes, stack_count, box_list):
         if pallet_status == "partial":
-            extra_boxes = 0
-            front_boxes = len(box_stacks[0])*layers if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else 0
-            for i, box_layer in enumerate(box_list[1:]):
-                extra_boxes += len(box_layer)*(layers - i - 1)
-            return front_boxes + extra_boxes
+            # extra_boxes = 0
+            front_layer_boxes = len(box_stacks[0]) if len(box_stacks) > 0 and len(box_stacks) == stack_count + 1 else 0
+            if front_layer_boxes == 0:
+                i = 1
+                while len(box_list[i]) == 0 and i < len(box_list):
+                    i += 1
+                if i < len(box_list):
+                    current_layer_boxes = front_boxes * (layers - i)
+                    return current_layer_boxes - (front_boxes - box_list[i])
+            else:
+                current_layer_boxes = front_boxes * layers 
+                return current_layer_boxes - (front_boxes - front_layer_boxes)
+                    
+            # for i, box_layer in enumerate(box_list[1:]):
+            #     extra_boxes += len(box_layer)*(layers - i - 1)
+            # return front_boxes + extra_boxes
+
         else:
             return 0
 
