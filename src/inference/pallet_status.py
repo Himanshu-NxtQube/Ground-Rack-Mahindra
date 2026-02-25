@@ -3,6 +3,8 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 def get_pallet_status(box_stacks, boxes, layers, stacking_type, odd_layering, even_layering, front_boxes):
+    if not layers:
+        return ""
     all_empty = True
     for i in range(1,layers):
         if len(boxes[i]) > 0:
