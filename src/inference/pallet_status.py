@@ -3,13 +3,13 @@ from utils.logger import get_logger
 logger = get_logger(__name__)
 
 def get_pallet_status(box_stacks, boxes, layers, stacking_type, odd_layering, even_layering, front_boxes):
-    if len(boxes[0]) == 0:
-        return "empty"
-
+    all_empty = True
     for i in range(1,layers):
         if len(boxes[i]) > 0:
             return "partial"
-        
+
+    if len(box_stacks) == 0:
+        return "empty"
     top_stack = box_stacks[0]
     if stacking_type == "interlock":
         if len(box_stacks)%2 == 0:
