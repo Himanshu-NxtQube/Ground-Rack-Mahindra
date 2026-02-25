@@ -1,17 +1,17 @@
 import os
 import sys
 import cv2
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
-from src.inference.box_detector import BoxDetector
-from src.inference.pallet_detector import PalletDetector
-from src.inference.boundary_detection import BoundaryDetector
+from inference.box_detector import BoxDetector
+from inference.pallet_detector import PalletDetector
+from inference.boundary_detection import BoundaryDetector
 
 box_detector = BoxDetector()
 pallet_detector = PalletDetector()
 boundary_detector = BoundaryDetector()
 
-images_dir = 'other/Marico images/'
+images_dir = 'other/Interlock Boxes (Multiple types)'
 
 
 def initialize(image_path):

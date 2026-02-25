@@ -13,7 +13,7 @@ class CSVUtils:
 
     def get_boxes_per_layer(self, part_number):
         try:
-            return self.structure_data.loc[part_number, 'boxes per layer']
+            return int(self.structure_data.loc[part_number, 'boxes per layer'])
         except (KeyError, TypeError, ValueError):
             self.error_bucket.add_partnumber(ErrorCodes.BOXES_PER_LAYER_NOT_FOUND, part_number)
             logger.error("Boxes per layer not found for part number: %s", part_number)
@@ -37,7 +37,7 @@ class CSVUtils:
 
     def get_layers(self, part_number):
         try:
-            return self.structure_data.loc[part_number, 'layers']
+            return int(self.structure_data.loc[part_number, 'layers'])
         except (KeyError, TypeError, ValueError):
             self.error_bucket.add_partnumber(ErrorCodes.LAYERS_NOT_FOUND, part_number)
             logger.error("Layers not found for part number: %s", part_number)
@@ -73,7 +73,7 @@ class CSVUtils:
     
     def get_front_boxes(self, part_number):
         try:
-            return self.structure_data.loc[part_number, 'front boxes']
+            return int(self.structure_data.loc[part_number, 'front boxes'])
         except (KeyError, TypeError, ValueError):
             self.error_bucket.add_partnumber(ErrorCodes.FRONT_BOXES_NOT_FOUND, part_number)
             logger.error("Front boxes not found for part number: %s", part_number)
