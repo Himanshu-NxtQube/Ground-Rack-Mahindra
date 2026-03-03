@@ -4,14 +4,14 @@ import os
 import matplotlib.pyplot as plt
 
 # Add parent directory to path to allow importing from inference
-sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../src'))
 
-from src.inference.depth_estimation import DepthEstimator
+from inference.depth_estimation import DepthEstimator
 
 # Initialize with the correct model name
 depth_estimator = DepthEstimator("depth_anything_v2")
 
-image_path = "images/DJI_0707.JPG"
+image_path = "/mnt/productive/Work/Block Inventory Management/testing images/images/mahindra/DJI_0252.JPG"
 
 depth_map = depth_estimator.get_depth_map(image_path)
 image = cv2.imread(image_path)
